@@ -9,6 +9,19 @@ import linkedlist
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
 
+def printPostings(postings_file, dictionary):
+    with open(postings_file, "rb") as postingsFp:
+            for word in dictionary:
+                [startPos, sz] = dictionary[word]
+
+                # sample of how to use file pointers from dictionary
+                postingsFp.seek(startPos)
+                postingInBytes = postingsFp.read(sz)
+                # posting is a linkedlist
+                posting = linkedlist.LinkedListSerialiser.deserialise(postingInBytes)
+
+                print(word, posting)
+
 def run_search(dict_file, postings_file, queries_file, results_file):
     """
     using the given dictionary file and postings file,
@@ -17,15 +30,37 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     print('running search on the queries...')
     # This is an empty method
     # Pls implement your code in below
+
     with open(dict_file, "rb") as dict_file:
+        # <word in string form, [start byte address, size in bytes]>
         dictionary = pickle.load(dict_file)
         
-    with open(postings_file, "rb") as postingsFp:
-        for word in dictionary:
-            [startPos, sz] = dictionary[word]
-            postingsFp.seek(startPos)
-            posting = linkedlist.LinkedListSerialiser.deserialise(postingsFp.read(sz))
-            print(word, posting)
+    # debug postings load
+    printPostings(postings_file, dictionary)
+
+    with open(queries_file, "r") as queries:
+        for query in queries:
+            handleQuery(query)
+
+# TODO: Handle one query string
+def handleQuery(query):
+    words = query.split()
+    layers = []
+    currentLayer = []
+    for word in words:
+        if "(" in word:
+            layers.append(currentLayer)
+            currentLayer = []
+            word = word[1:]
+        currentLayer.append(word)
+        if ")" in word:
+            newLayer = currentLayer[-2]
+            newLayer.append(processLayer(currentLayer))
+    pass
+
+def processLayer(currentLayer):
+    # implement DP of the current layer, assume no indentation
+    pass
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 

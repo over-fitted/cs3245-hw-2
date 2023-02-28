@@ -33,12 +33,12 @@ class LinkedListSerialiser:
     @classmethod
     def serialise(cls, linkedlist):
         # return pickle.dumps(linkedlist.__dict__, default=lambda o: o.__dict__)
-        print("dumping")
+        # print("dumping")
         return pickle.dumps(linkedlist)
     
     @classmethod
     def deserialise(cls, serialisedLinkedList):
-        print("loading")
+        # print("loading")
         return pickle.loads(serialisedLinkedList)
         
 if __name__ == "__main__":
