@@ -28,19 +28,35 @@ class LinkedList:
             it = it.nextNode
         ret += "]"
         return ret
+    
+    def compare(self, otherLinkedList):
+        tempSelf = self.head
+        tempOther = otherLinkedList.head
+
+        counter = 0
+
+        while tempSelf is not None and tempOther is not None:
+            if tempSelf.id != tempOther.id:
+                return False
+            counter += 1
+            tempSelf = tempSelf.nextNode
+            tempOther = tempOther.nextNode
+            
+        if tempSelf is None and tempOther is None:
+            return True
         
 class LinkedListSerialiser:
     @classmethod
     def serialise(cls, linkedlist):
-        # return pickle.dumps(linkedlist.__dict__, default=lambda o: o.__dict__)
-        # print("dumping")
         return pickle.dumps(linkedlist)
     
     @classmethod
     def deserialise(cls, serialisedLinkedList):
-        # print("loading")
         return pickle.loads(serialisedLinkedList)
         
+
+
+
 if __name__ == "__main__":
     xxs = [LinkedList([1,2,3,4,5]), LinkedList([2,3,4,5]), LinkedList([4,3,2,5])]
     serial = LinkedListSerialiser

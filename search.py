@@ -11,16 +11,23 @@ def usage():
 
 def printPostings(postings_file, dictionary):
     with open(postings_file, "rb") as postingsFp:
-            for word in dictionary:
-                [startPos, sz] = dictionary[word]
+        # print(sorted(dictionary.keys()))
+        # print(dictionary["1,130,000"])
+        for word in sorted(dictionary.keys()):
+            print("printing", word)
+            print(dictionary[word])
+            [startPos, sz] = dictionary[word]
 
-                # sample of how to use file pointers from dictionary
-                postingsFp.seek(startPos)
-                postingInBytes = postingsFp.read(sz)
-                # posting is a linkedlist
-                posting = linkedlist.LinkedListSerialiser.deserialise(postingInBytes)
+            # sample of how to use file pointers from dictionary
+            postingsFp.seek(startPos)
+            postingInBytes = postingsFp.read(sz)
+            # posting is a linkedlist
+            posting = linkedlist.LinkedListSerialiser.deserialise(postingInBytes)
 
-                print(word, posting)
+            print(word, posting)
+            # print(word, dictionary[word])
+        # print("dict size", len(dictionary.keys()))
+        # print("postings size", len(postingsFp.readlines()))
 
 def run_search(dict_file, postings_file, queries_file, results_file):
     """
@@ -38,9 +45,9 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     # debug postings load
     printPostings(postings_file, dictionary)
 
-    with open(queries_file, "r") as queries:
-        for query in queries:
-            handleQuery(query)
+    # with open(queries_file, "r") as queries:
+    #     for query in queries:
+    #         handleQuery(query)
 
 # TODO: Handle one query string
 def handleQuery(query):

@@ -7,6 +7,8 @@ import os
 import pickle
 import shutil
 import linkedlist
+import resource
+import sys
 
 # improvements:
 # use temp directory
@@ -47,6 +49,7 @@ def build_index(in_dir, out_dict, out_postings):
     
     buildDocIds(in_dir, "docIds.txt")
     dictionary = {}
+    reverseDictionary = {}
     index = {}
 
     inFiles = sorted(os.listdir(in_dir))
@@ -54,42 +57,40 @@ def build_index(in_dir, out_dict, out_postings):
     # first pass: Create starting blocks indexing 500 documents each
     currentBlockDocs = 0
     currentTempId = 1
+    runningTermId = 0
     for inFile in inFiles:
-        f = open(os.path.join(in_dir, inFile), "r", encoding="utf-8")
-        fileSet = set()
+        with open(os.path.join(in_dir, inFile), "r", encoding="utf-8") as f:
+            fileSet = set()
 
-        for line in f:
-            words = line.split()
-            for word in words:
-                fileSet.add(word)
-        
-        for word in fileSet:
-            if word not in dictionary.keys():
-                dictionary[word] = len(dictionary.keys())
-                index[dictionary[word]] = []
+            for line in f:
+                words = line.split()
+                for word in words:
+                    fileSet.add(word)
+            
+            for word in fileSet:
+                if word not in dictionary.keys():
+                    dictionary[word] = runningTermId
+                    runningTermId += 1
+                    reverseDictionary[dictionary[word]] = word
+                    index[dictionary[word]] = []
 
-            termid = dictionary[word]
-            if termid not in index.keys():
-                index[termid] = []
+                currTermId = dictionary[word]
+                if currTermId not in index.keys():
+                    index[currTermId] = []
 
-            index[termid].append(inFile)
+                index[currTermId].append(inFile)
 
-        # write out block of size 500 docs - get tens of blocks out
-        currentBlockDocs += 1
-        print(currentBlockDocs)
-        if currentBlockDocs == 500:
-            writeOut(index, os.path.join('temp1', str(currentTempId) + '.txt'))
-            currentTempId += 1
-            currentBlockDocs = 0
-            index = {}
-            continue
-
+            # write out block of size 500 docs - get tens of blocks out
+            currentBlockDocs += 1
+            if currentBlockDocs == 500:
+                writeOut(index, os.path.join('temp1', str(currentTempId) + '.txt'))
+                currentTempId += 1
+                currentBlockDocs = 0
+                index = {}
+                continue
 
     # write out partially filled block. Give smallest ID to give priority in merging at next step
     if len(index) > 0:
-        print("writing partial index")
-        for key in index.keys():
-            print(key, index[key])
         writeOut(index, os.path.join('temp1', '0.txt'))
         index = {}
 
@@ -100,51 +101,83 @@ def build_index(in_dir, out_dict, out_postings):
     nwd = "temp2"
     cwdFileList = sorted(os.listdir(cwd))
     while len(cwdFileList) > 1:
-        print("new cwd", cwd)
-        fileCounter = 1
         while len(cwdFileList) > 1:
-            print("merging files")
             file1 = os.path.join(cwd, cwdFileList[0])
             file2 = os.path.join(cwd, cwdFileList[1])
-            mergeFiles(file1, file2, os.path.join(nwd, str(fileCounter) + '.txt'))
-            fileCounter += 1
+            mergeFiles(file1, file2, os.path.join(nwd, str(currentTempId) + '.txt'))
+            currentTempId += 1
             cwdFileList = cwdFileList[2:]
         if len(cwdFileList) == 1:
-            print("last file found")
-            shutil.copy(os.path.join(cwd, cwdFileList[0]), os.path.join(nwd, '0.txt'))
+            shutil.copy(os.path.join(cwd, cwdFileList[0]), os.path.join(nwd, str(currentTempId) + '.txt'))
+            currentTempId += 1
         shutil.rmtree(cwd)
         os.mkdir(cwd)
         cwd, nwd = nwd, cwd
         cwdFileList = sorted(os.listdir(cwd))
 
-    # postingslist = tempToIndex(cwdFileList[0])
+    seen = set()
+    with open(os.path.join(cwd, cwdFileList[0]), "r") as tempIndexFp, open(out_postings, "wb") as out_postingsFP:
+        # python automatically handles memory
+        startIdx = 0
+        for line in tempIndexFp:
+            # not likely necessary but just in case, guarded against a fixed bug
+            if line == "\n":
+                continue
+            separatedTerms = line.split()
+            postingTermId = separatedTerms[0]
+            posting = separatedTerms[1:]
+            # print(termId)
+            postingTermId, *posting = line.split()
+            if postingTermId in seen:
+                print("seen", postingTermId)
+            seen.add(postingTermId)
+            posting = linkedlist.LinkedList(posting)
+            originalTerm = reverseDictionary[int(postingTermId)]
+            dictionary[originalTerm] = [startIdx, out_postingsFP.write(linkedlist.LinkedListSerialiser.serialise(posting))]
+            startIdx += dictionary[originalTerm][1]
+            
+    with open(out_dict, "wb") as dictFile:
+        pickle.dump(dictionary, dictFile)
+
+    # cleanup
+    # shutil.rmtree("temp1")
+    # shutil.rmtree("temp2")
+
+    # with open("plaintextDict.txt", "w") as plainDict:
+    #     for key in dictionary.keys():
+    #         plainDict.write(key + " " + str(dictionary[key]) + "\n")
 
 
+def outputDictPickle(index, dictionary, out_dict, out_postings):
+    for key in index:
+        index[key] = linkedlist.LinkedList(index[key])
+
+    startIdx = 0
+
+    with open(out_postings, "wb") as out_postingsFP:
+        for word in sorted(dictionary.keys()):
+            dictionary[word] = [startIdx, out_postingsFP.write(linkedlist.LinkedListSerialiser.serialise(index[dictionary[word]]))]
+            startIdx += dictionary[word][1]
+
+    with open(out_dict, "wb") as dictFile:
+        pickle.dump(dictionary, dictFile)
 
 
-    # Output singular index file with 
-    # for key in index:
-    #     index[key] = linkedlist.LinkedList(index[key])
+# pickle recursion exceeds limit otherwise
+# code taken from https://stackoverflow.com/questions/2134706/hitting-maximum-recursion-depth-using-pickle-cpickle
+def increaseRecursionLimit():
+    # print(resource.getrlimit(resource.RLIMIT_STACK))
+    # print(sys.getrecursionlimit())
 
-    # startIdx = 0
+    max_rec = 0x100000
 
-    # with open(out_postings, "wb") as postingsFile:
-    #     for word in dictionary:
-    #         dictionary[word] = [startIdx, postingsFile.write(linkedlist.LinkedListSerialiser.serialise(index[dictionary[word]]))]
-    #         print(word, dictionary[word][0], dictionary[word][1])
-    #         startIdx += dictionary[word][1]
+    # May segfault without this line. 0x100 is a guess at the size of each stack frame.
+    resource.setrlimit(resource.RLIMIT_STACK, [0x100 * max_rec, resource.RLIM_INFINITY])
+    sys.setrecursionlimit(max_rec)
 
-    # with open(out_dict, "wb") as dictFile:
-    #     pickle.dump(dictionary, dictFile)
-
-    # # with open(out_dict, "wb") as dictFile:
-    # #     dictFile.write(pickle.dumps(dictionary))
-
-    # print("done")
 
 # writes <termId, space-separated docids> pair into a single line of postingsmap
 def writeOut(postingsMap, outFile):
-    print("printing to", outFile)
     with open(str(outFile), "w") as outFile:
         for key in sorted(postingsMap.keys()):
             outFile.write(str(key))
@@ -159,11 +192,8 @@ def writeSinglePosting(term, posting, outFp):
     outputStr += "\n"
     outFp.write(outputStr)
 
-# merging a pair of files
-# for each file read 60000 characters, split by newline, discard last line
-# when 
 def mergeFiles(file1, file2, outFile):
-    sizePerFilePerBlock = 5000
+    sizePerFilePerBlock = 60000
 
     with open(file1, "r") as fp1, open(file2, "r") as fp2, open(outFile, "w") as outFp:
         file1PostingMap = readPostingStrings(fp1, sizePerFilePerBlock)
@@ -193,35 +223,14 @@ def mergeFiles(file1, file2, outFile):
                     continue
 
                 # match found, merge postings for the same docId
-                file1PostingIdx = 0
-                file2PostingIdx = 0
-                currFile1Posting = file1PostingMap[currFile1Term]
-                currFile2Posting = file2PostingMap[currFile2Term]
-                mergedPosting = []
+                if currFile2Term == currFile1Term:
+                    mergedPosting = mergePostings(file1PostingMap[currFile1Term], file2PostingMap[currFile2Term])
+                    writeSinglePosting(currFile1Term, mergedPosting, outFp)
+                    file1PostingKeyIdx += 1
+                    file2PostingKeyIdx += 1
+                    continue
 
-                while file1PostingIdx < len(currFile1Posting) and file2PostingIdx < len(currFile2Posting):
-                    file1DocId = currFile1Posting[file1PostingIdx]
-                    file2DocId = currFile2Posting[file2PostingIdx]
-                    if file1DocId < file2DocId:
-                        mergedPosting.append(file1DocId)
-                        file1PostingIdx += 1
-                        continue
-                        
-                    if file2DocId < file1DocId:
-                        mergedPosting.append(file2DocId)
-                        file2PostingIdx += 1
-                        continue
-
-                    mergedPosting.append(file1DocId)
-                    file1PostingIdx += 1
-                    file2PostingIdx += 1
-
-                mergedPosting.extend(currFile1Posting[file1PostingIdx:])
-                mergedPosting.extend(currFile2Posting[file2PostingIdx:])
-
-                writeSinglePosting(currFile1Term, mergedPosting, outFp)
-                file1PostingKeyIdx += 1
-                file2PostingKeyIdx += 1
+                print("ERROR: terms do not compare", currFile1Term, currFile2Term)
                 
             # chunk for one dictionary has been completed
             if file1PostingKeyIdx == len(file1PostingKeys):
@@ -245,8 +254,44 @@ def mergeFiles(file1, file2, outFile):
             writeSinglePosting(currfile2Term, file2PostingMap[currfile2Term], outFp)
             file2PostingKeyIdx += 1
             
+        # likely previous source of bugs, when we write fp1.read() newline is not printed after, resulting in mistaken joining of postings
+        oldPosFp1 = fp1.tell()
+        oldPosFp2 = fp2.tell()
+
         outFp.write(fp1.read())
+        outFp.write("\n")
         outFp.write(fp2.read())
+        outFp.write("\n")
+
+        # if oldPosFp1 != fp1.tell() or oldPosFp2 != fp2.tell():
+        #     print("disjoint found")
+        #     outFp.write("\n")
+
+def mergePostings(posting1, posting2):
+    posting1Idx = 0
+    posting2Idx = 0
+    mergedPosting = []
+
+    while posting1Idx < len(posting1) and posting2Idx < len(posting2):
+        file1DocId = posting1[posting1Idx]
+        file2DocId = posting2[posting2Idx]
+        if file1DocId < file2DocId:
+            mergedPosting.append(file1DocId)
+            posting1Idx += 1
+            continue
+            
+        if file2DocId < file1DocId:
+            mergedPosting.append(file2DocId)
+            posting2Idx += 1
+            continue
+
+        mergedPosting.append(file1DocId)
+        posting1Idx += 1
+        posting2Idx += 1
+
+    leftover = posting1[posting1Idx:] + posting2[posting2Idx:]
+    mergedPosting.extend(leftover)
+    return mergedPosting
 
 def readPostingStrings(fp, sizePerFilePerBlock):
     fileBuffer = fp.read(sizePerFilePerBlock)
@@ -292,4 +337,7 @@ if input_directory == None or output_file_postings == None or output_file_dictio
     usage()
     sys.exit(2)
 
+increaseRecursionLimit()
 build_index(input_directory, output_file_dictionary, output_file_postings)
+
+print(mergePostings([1,2,4], [1,2,3,4,6,8]))
