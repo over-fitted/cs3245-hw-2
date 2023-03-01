@@ -186,7 +186,7 @@ def writeOut(postingsMap, outFile):
             outFile.write("\n")
             
 def writeSinglePosting(term, posting, outFp):
-    outputStr = str(term) + " "
+    outputStr = str(term)
     for docId in posting:
         outputStr += " " + docId
     outputStr += "\n"
