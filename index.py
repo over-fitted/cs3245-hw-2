@@ -7,10 +7,13 @@ import os
 import pickle
 import linkedlist
 
-counter = {}
-
 def usage():
     print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
+
+def buildDocIds(in_dir, out_file):
+    inFiles = sorted(os.listdir(in_dir))
+    with open(out_file, "wb") as out_file:
+        pickle.dump(inFiles, out_file)
 
 # assumes that input files are preprocessed
 def build_index(in_dir, out_dict, out_postings):
@@ -22,11 +25,15 @@ def build_index(in_dir, out_dict, out_postings):
     # This is an empty method
     # Pls implement your code in below
 
+    buildDocIds(in_dir, "docIds.txt")
     dictionary = {}
     index = {}
 
     inFiles = sorted(os.listdir(in_dir))
 
+    # first pass: Create starting blocks indexing 500 documents each
+    currentBlockDocs = 0
+    currentTempId = 1
     for inFile in inFiles:
         f = open(os.path.join(in_dir, inFile), "r", encoding="utf-8")
         fileSet = set()
@@ -42,7 +49,32 @@ def build_index(in_dir, out_dict, out_postings):
                 index[dictionary[word]] = []
             index[dictionary[word]].append(inFile)
 
+        # write out block of size 500 docs - get tens of blocks out
+        currentBlockDocs += 1
+        if currentBlockDocs == 5:
+            writeOut(index, f'temp1/{currentTempId}.txt')
+            currentTempId += 1
+            currentBlockDocs = 0
+            index = {}
+            continue
 
+    # write out partially filled block. Give smallest ID to give priority in merging at next step
+    if len(index) > 0:
+        writeOut(index, 'temp1/0.txt')
+        index = {}
+
+    usingTemp1 = True
+
+    
+
+    # while at least one directory has at least two files
+    # consolidate pairs of docs, chuck into other temp
+
+
+
+
+
+    # Output singular index file with 
     for key in index:
         index[key] = linkedlist.LinkedList(index[key])
 
@@ -62,7 +94,16 @@ def build_index(in_dir, out_dict, out_postings):
 
     print("done")
 
+def writeOut(postingsMap, outFile):
+    pass
 
+# merging a pair of files
+# for each file read 5000 characters, split by newline, discard last line
+# when 
+def mergeFiles(file1, file2, outFile):
+    sizePerFilePerBlock = 5000
+    with open(file1, "r") as file1, open(file2, "r") as file2:
+        pass
 
 
 
@@ -89,4 +130,5 @@ if input_directory == None or output_file_postings == None or output_file_dictio
     usage()
     sys.exit(2)
 
-build_index(input_directory, output_file_dictionary, output_file_postings)
+# build_index(input_directory, output_file_dictionary, output_file_postings)
+buildDocIds(input_directory, "docIds.txt")
