@@ -8,6 +8,9 @@ Add BSBI to indexing
 Add search functionality
 
 # Indexing
+We use BSBI with block size of 5000
+
+
 Following command assumes that all input files are preprocessed and place in a directory labelled `input`.
 smallInput includes a subset of preprocessed files from the Reuters dataset. Answers for these input files can be found in smallInputAnswer directory
 model answers can be generated using `inMemoryIndex.py`.

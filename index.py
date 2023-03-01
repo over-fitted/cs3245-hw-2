@@ -140,8 +140,8 @@ def build_index(in_dir, out_dict, out_postings):
         pickle.dump(dictionary, dictFile)
 
     # cleanup
-    # shutil.rmtree("temp1")
-    # shutil.rmtree("temp2")
+    shutil.rmtree("temp1")
+    shutil.rmtree("temp2")
 
     # with open("plaintextDict.txt", "w") as plainDict:
     #     for key in dictionary.keys():
@@ -193,7 +193,8 @@ def writeSinglePosting(term, posting, outFp):
     outFp.write(outputStr)
 
 def mergeFiles(file1, file2, outFile):
-    sizePerFilePerBlock = 60000
+    # figure out why smaller size result in posting corruption
+    sizePerFilePerBlock = 1000000
 
     with open(file1, "r") as fp1, open(file2, "r") as fp2, open(outFile, "w") as outFp:
         file1PostingMap = readPostingStrings(fp1, sizePerFilePerBlock)
@@ -299,6 +300,8 @@ def readPostingStrings(fp, sizePerFilePerBlock):
     # buffer filled to capacity, last posting is possibly partially filled
     filePostingStrings = [i for i in fileBuffer.split("\n") if i != ""]
 
+    # print("full buffer", len(fileBuffer) == sizePerFilePerBlock)
+
     # remove incomplete last posting
     if len(fileBuffer) == sizePerFilePerBlock:
         fp.seek(fp.tell() - len(filePostingStrings[-1]))
@@ -339,5 +342,3 @@ if input_directory == None or output_file_postings == None or output_file_dictio
 
 increaseRecursionLimit()
 build_index(input_directory, output_file_dictionary, output_file_postings)
-
-print(mergePostings([1,2,4], [1,2,3,4,6,8]))
