@@ -194,7 +194,7 @@ def writeSinglePosting(term, posting, outFp):
 
 def mergeFiles(file1, file2, outFile):
     # figure out why smaller size result in posting corruption
-    sizePerFilePerBlock = 1000000
+    sizePerFilePerBlock = 500000
 
     with open(file1, "r") as fp1, open(file2, "r") as fp2, open(outFile, "w") as outFp:
         file1PostingMap = readPostingStrings(fp1, sizePerFilePerBlock)
@@ -300,10 +300,10 @@ def readPostingStrings(fp, sizePerFilePerBlock):
     # buffer filled to capacity, last posting is possibly partially filled
     filePostingStrings = [i for i in fileBuffer.split("\n") if i != ""]
 
-    # print("full buffer", len(fileBuffer) == sizePerFilePerBlock)
-
     # remove incomplete last posting
     if len(fileBuffer) == sizePerFilePerBlock:
+        print("full buffer spotted")
+        print("rollback by", len(filePostingStrings[-1]))
         fp.seek(fp.tell() - len(filePostingStrings[-1]))
         filePostingStrings = filePostingStrings[:-1]
 
