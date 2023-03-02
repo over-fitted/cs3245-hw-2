@@ -145,7 +145,6 @@ def build_index(in_dir, out_dict, out_postings):
         cwd, nwd = nwd, cwd
         cwdFileList = sorted(os.listdir(cwd))
 
-    seen = set()
     with open(os.path.join(cwd, cwdFileList[0]), "r") as tempIndexFp, open(out_postings, "wb") as out_postingsFP:
         # python automatically handles memory
         startIdx = 0
@@ -157,9 +156,6 @@ def build_index(in_dir, out_dict, out_postings):
             postingTermId = separatedTerms[0]
             posting = separatedTerms[1:]
             posting = [int(i) for i in posting]
-            if postingTermId in seen:
-                print("seen", postingTermId)
-            seen.add(postingTermId)
             originalTerm = reverseDictionary[int(postingTermId)]
             posting = linkedlist.LinkedList(posting)
             dictionary[originalTerm] = [startIdx, out_postingsFP.write(linkedlist.LinkedListSerialiser.serialise(posting))]
@@ -171,10 +167,6 @@ def build_index(in_dir, out_dict, out_postings):
     # cleanup
     shutil.rmtree("temp1")
     shutil.rmtree("temp2")
-
-    # with open("plaintextDict.txt", "w") as plainDict:
-    #     for key in dictionary.keys():
-    #         plainDict.write(key + " " + str(dictionary[key]) + "\n")
 
 
 def outputDictPickle(index, dictionary, out_dict, out_postings):
@@ -195,9 +187,6 @@ def outputDictPickle(index, dictionary, out_dict, out_postings):
 # pickle recursion exceeds limit otherwise
 # code taken from https://stackoverflow.com/questions/2134706/hitting-maximum-recursion-depth-using-pickle-cpickle
 def increaseRecursionLimit():
-    # print(resource.getrlimit(resource.RLIMIT_STACK))
-    # print(sys.getrecursionlimit())
-
     max_rec = 0x100000
 
     # May segfault without this line. 0x100 is a guess at the size of each stack frame.
@@ -215,8 +204,6 @@ def writeOut(postingsMap, outFile):
             outFile.write("\n")
             
 def writeSinglePosting(term, posting, outFp):
-    # if len(posting) > 10:
-    #     print("write", posting)
     outputStr = str(term)
     for docId in posting:
         outputStr += " " + str(docId)
@@ -285,19 +272,11 @@ def mergeFiles(file1, file2, outFile):
             currfile2Term = file2PostingKeys[file2PostingKeyIdx]
             writeSinglePosting(currfile2Term, file2PostingMap[currfile2Term], outFp)
             file2PostingKeyIdx += 1
-            
-        # likely previous source of bugs, when we write fp1.read() newline is not printed after, resulting in mistaken joining of postings
-        oldPosFp1 = fp1.tell()
-        oldPosFp2 = fp2.tell()
 
         outFp.write(fp1.read())
         outFp.write("\n")
         outFp.write(fp2.read())
         outFp.write("\n")
-
-        # if oldPosFp1 != fp1.tell() or oldPosFp2 != fp2.tell():
-        #     print("disjoint found")
-        #     outFp.write("\n")
 
 def mergePostings(posting1, posting2):
     posting1Idx = 0
@@ -333,8 +312,6 @@ def readPostingStrings(fp, sizePerFilePerBlock):
 
     # remove incomplete last posting
     if len(fileBuffer) == sizePerFilePerBlock:
-        # print("full buffer spotted")
-        # print("rollback by", len(filePostingStrings[-1]))
         fp.seek(fp.tell() - len(filePostingStrings[-1]))
         filePostingStrings = filePostingStrings[:-1]
 
@@ -344,8 +321,6 @@ def readPostingStrings(fp, sizePerFilePerBlock):
         termId, *posting = postingString.split(" ")
         termId = int(termId)
         postingsMap[termId] = [int(i) for i in posting]
-        # if len(postingsMap[termId]) > 5:
-        #     print(postingsMap[termId])
 
     
     return postingsMap

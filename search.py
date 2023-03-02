@@ -62,7 +62,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             # shunting yard preprocess
             while queryIdx < len(query):                
                 if innerLayer:
-                    print("innerLayer", queryIdx, innerOperators, "innerLists:", [str(xs) for xs in innerLists])
+                    # print("innerLayer", queryIdx, innerOperators, "innerLists:", [str(xs) for xs in innerLists])
                     # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                     if (queryIdx - offset) % 2 == 0:
                         if query[queryIdx] == "NOT":
@@ -80,14 +80,14 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                             if term[0] == '(':
                                 term = term[1:]
                             
-                            print("term seen is",term)
+                            # print("term seen is",term)
                             singleWordPosting = single_word_query(term, dictionary, postings_file)
                             innerLists.append(singleWordPosting)
                             queryIdx += 1
                             
                             # end bracket seen, handle inner layer
                             if exitInner:
-                                print("handling inners")
+                                # print("handling inners")
                                 lists.append(handleLayer(innerLists, innerOperators, docIds))
                                 innerLayer = False
                                 exitInner = False
@@ -99,7 +99,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     queryIdx += 1
                     continue
                 
-                print("outer", queryIdx, operators, "lists:", len(lists))
+                # print("outer", queryIdx, operators, "lists:", len(lists))
                 
                 # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                 if (queryIdx - offset) % 2 == 0:
@@ -129,19 +129,6 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             lst = [str(i) for i in lst]
             out_file.write(' '.join(sorted(lst, key = lambda x : int(x))) + "\n")
 
-    w1 = single_word_query('japan', dictionary, postings_file)
-    w2 = single_word_query('zurich', dictionary, postings_file)
-    # w1, w2 = list(map(int, w1)), list(map(int, w2))
-    # w1, w2 = linkedlist.LinkedList(sorted(w1)), linkedlist.LinkedList(sorted(w2))
-    tmp_lst = eval_AND(w1, w2).to_lst()
-    print()
-    print("japan", w1.to_lst())
-    print() 
-    print("zurich: ", w2.to_lst()) 
-    print() 
-    print(tmp_lst)
-    print() 
-
 
 def handleLayer(lists, operators, docIds):
     optimisedOperators = []
@@ -153,21 +140,21 @@ def handleLayer(lists, operators, docIds):
             continue
         optimisedOperators.append(operators[i])
             
-    print([xs.getSize() for xs in lists])
+    # print([xs.getSize() for xs in lists])
     opIdx = 0
     listIdx = 0
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "NOT":
-            print("doing NOT to", listIdx)
-            print(len(docIds))
+            # print("doing NOT to", listIdx)
+            # print(len(docIds))
             lists[listIdx] = eval_NOT(lists[listIdx], docIds)
             optimisedOperators.pop(opIdx)
             continue
-        print("skip")
+        # print("skip")
         opIdx += 1
         listIdx += 1
 
-    print([xs.getSize() for xs in lists])
+    # print([xs.getSize() for xs in lists])
         
     # Handle AND operations
     # index candidate AND operations
@@ -175,7 +162,7 @@ def handleLayer(lists, operators, docIds):
     listIdx = 0
     # <estimatedLength, id>
     candidateOperations = []
-    print(lists)
+    # print(lists)
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "AND":
             candidateOperations.append([min(lists[listIdx].getSize(), lists[listIdx + 1].getSize()), listIdx])
@@ -257,7 +244,7 @@ def single_word_query(word, dictionary, postings_file):
     word = stemmer.stem(word.lower()) # case folding and stemming
 
     start, sz  = dictionary.get(word, [-1, -1]) # -1 means that the word doesn't exist 
-    print("querying single word", word, start, sz)
+    # print("querying single word", word, start, sz)
             
     if start != -1:
         with open(postings_file, "rb") as post_file:
