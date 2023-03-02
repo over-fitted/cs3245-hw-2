@@ -124,36 +124,41 @@ def handleLayer(lists, operators, docIds):
             continue
         optimisedOperators.append(operators[i])
             
-    while len(optimisedOperators) >= 1:
-        print(len(lists))
-        opIdx = 0
-        listIdx = 0
-        while opIdx < len(optimisedOperators):
-            if optimisedOperators[opIdx] == "NOT":
-                lists[listIdx] = eval_NOT(lists[listIdx], docIds)
-                optimisedOperators.pop(opIdx)
-                listIdx += 1
-                continue
-            
-            opIdx += 1
+    print(len(lists))
+    opIdx = 0
+    listIdx = 0
+    while opIdx < len(optimisedOperators):
+        if optimisedOperators[opIdx] == "NOT":
+            lists[listIdx] = eval_NOT(lists[listIdx], docIds)
+            optimisedOperators.pop(opIdx)
             listIdx += 1
-        
-        opIdx = 0
-        listIdx = 0
-        while opIdx < len(optimisedOperators):
-            if optimisedOperators[opIdx] == "AND":
-                lists[listIdx] = eval_AND(lists[listIdx], docIds)
-                optimisedOperators.pop(opIdx)
-                continue
-            
-            opIdx += 1
-            listIdx += 1
-        
-        if operators[0] == "OR":
-            lists[0] = eval_OR(lists[0], lists[1])
-            lists.pop(1)
-            operators.pop(0)
             continue
+        
+        opIdx += 1
+        listIdx += 1
+    
+    opIdx = 0
+    listIdx = 0
+    while opIdx < len(optimisedOperators):
+        if optimisedOperators[opIdx] == "AND":
+            lists[listIdx] = eval_AND(lists[listIdx], docIds)
+            optimisedOperators.pop(opIdx)
+            continue
+        
+        opIdx += 1
+        listIdx += 1
+        
+    
+    opIdx = 0
+    listIdx = 0
+    while opIdx < len(optimisedOperators):
+        if optimisedOperators[opIdx] == "OR":
+            lists[listIdx] = eval_OR(lists[listIdx], docIds)
+            optimisedOperators.pop(opIdx)
+            continue
+        
+        opIdx += 1
+        listIdx += 1
         
         # if operators[0] == "AND":
         #     lists[0] = eval_AND(lists[0], lists[1])
