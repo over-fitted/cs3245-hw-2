@@ -370,6 +370,29 @@ def eval_AND(w1_lst, w2_lst):
         
     return linkedlist.LinkedList(output_lst)
 
+def eval_ANDNOT(w1_lst, w2_lst):
+
+    p1 = w1_lst.head 
+    p2 = w2_lst.head 
+
+    output_lst = [] 
+
+    while p1 != None and p2 != None:
+
+        if p1.id == p2.id:
+            p1 = p1.nextNode
+            p2 = p2.nextNode 
+        
+        elif p1.id > p2.id:
+            p2 = p2.nextNode
+        
+        else:
+            output_lst.append(p1.id)
+            p1 = p1.nextNode
+        
+    
+    return linkedlist.LinkedList(output_lst)
+
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 
 try:
