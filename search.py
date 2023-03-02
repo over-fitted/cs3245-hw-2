@@ -36,6 +36,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
         # <word in string form, [start byte address, size in bytes]>
         dictionary = pickle.load(dict_file)
         
+    # load list of sorted docIds
     with open("docIds.txt", "rb") as docid_file:
         docIds = pickle.load(docid_file)
 
@@ -49,13 +50,13 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             lists = []
             
             innerLayer = False
-            
             innerOperators = []
             innerLists = []
             
             # shunting yard preprocess
             while queryIdx < len(query):
                 if innerLayer:
+                    # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                     if (queryIdx - offset) % 2 == 0:
                         if query[queryIdx] == "NOT":
                             innerOperators.append(query[queryIdx])
@@ -65,15 +66,19 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                             
                         else:
                             term = query[queryIdx + 1]
+                            # handle nesting-related artifacts
                             if term[-1] == ')':
                                 term = term[:-1]
                                 innerLayer = False
                             if term[0] == '(':
                                 term = term[1:]
-                            innerLists.append(single_word_query(query[queryIdx], dictionary, postings_file))
+                            
+                            singleWordPosting = single_word_query(query[queryIdx], dictionary, postings_file)
+                            innerLists.append(singleWordPosting)
                             queryIdx += 1
                             continue
                         
+                    # Operator seen at this index
                     innerOperators.append(query[queryIdx])
                     if not innerLayer:
                         lists.append(handleLayer(innerLists, innerOperators, docIds))
@@ -81,6 +86,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     continue
                 
                 
+                # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                 if (queryIdx - offset) % 2 == 0:
                     if query[queryIdx] == "NOT":
                         operators.append(query[queryIdx])    
@@ -90,6 +96,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                         
                     print("term seen", query[queryIdx])
                     
+                    # nesting seen
                     if query[queryIdx][0] == '(':
                         innerLayer = True
                         innerOperators = []
@@ -103,14 +110,8 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 operators.append(query[queryIdx])    
                 queryIdx += 1
                 
-            for list in lists:
-                print(list)
-            print(len(lists))
-            print(operators)
             print(handleLayer(lists, operators, docIds))
 
-    print() 
-    
     return 
 
 def handleLayer(lists, operators, docIds):
@@ -118,6 +119,7 @@ def handleLayer(lists, operators, docIds):
     i = 0
     for i in range(len(operators)):
         if len(optimisedOperators) > 0 and operators[i] == "NOT" and optimisedOperators[-1] == "NOT":
+            optimisedOperators.pop()
             continue
         optimisedOperators.append(operators[i])
             
