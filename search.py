@@ -117,12 +117,37 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     return 
 
 def handleLayer(lists, operators, docIds):
-    while len(operators) >= 1:
-        print(len(lists))
-        if operators[0] == 'NOT':
-            lists[0] = eval_NOT(lists[0], docIds)
-            operators.pop(0)
+    optimisedOperators = []
+    i = 0
+    for i in range(len(operators)):
+        if len(optimisedOperators) > 0 and operators[i] == "NOT" and optimisedOperators[-1] == "NOT":
             continue
+        optimisedOperators.append(operators[i])
+            
+    while len(optimisedOperators) >= 1:
+        print(len(lists))
+        opIdx = 0
+        listIdx = 0
+        while opIdx < len(optimisedOperators):
+            if optimisedOperators[opIdx] == "NOT":
+                lists[listIdx] = eval_NOT(lists[listIdx], docIds)
+                optimisedOperators.pop(opIdx)
+                listIdx += 1
+                continue
+            
+            opIdx += 1
+            listIdx += 1
+        
+        opIdx = 0
+        listIdx = 0
+        while opIdx < len(optimisedOperators):
+            if optimisedOperators[opIdx] == "AND":
+                lists[listIdx] = eval_AND(lists[listIdx], docIds)
+                optimisedOperators.pop(opIdx)
+                continue
+            
+            opIdx += 1
+            listIdx += 1
         
         if operators[0] == "OR":
             lists[0] = eval_OR(lists[0], lists[1])
@@ -130,13 +155,11 @@ def handleLayer(lists, operators, docIds):
             operators.pop(0)
             continue
         
-        if operators[0] == "AND":
-            lists[0] = eval_AND(lists[0], lists[1])
-            lists.pop(1)
-            operators.pop(0)
-            continue
-        
-        print("OPERATOR BROKEN")
+        # if operators[0] == "AND":
+        #     lists[0] = eval_AND(lists[0], lists[1])
+        #     lists.pop(1)
+        #     operators.pop(0)
+        #     continue
         
     return lists[0]
 

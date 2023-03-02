@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-import re
 import nltk
 import sys
 import getopt
