@@ -4,6 +4,7 @@ england
 the 
 england OR chaps 
 NOT england 
+NOT NOT england
 england AND chaps 
 hello AND the 
 hello AND chaps

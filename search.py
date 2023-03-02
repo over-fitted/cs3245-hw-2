@@ -40,7 +40,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     with open("docIds.txt", "rb") as docid_file:
         docIds = pickle.load(docid_file)
 
-    with open(queries_file, "r") as query_file:
+    with open(queries_file, "r") as query_file, open(results_file, "w+") as out_file:
         for queryLine in query_file:
             query = queryLine.strip().split()
             offset = 0
@@ -94,7 +94,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                         offset += 1
                         continue
                         
-                    print("term seen", query[queryIdx])
+                    # print("term seen", query[queryIdx])
                     
                     # nesting seen
                     if query[queryIdx][0] == '(':
@@ -110,7 +110,8 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 operators.append(query[queryIdx])    
                 queryIdx += 1
                 
-            print(handleLayer(lists, operators, docIds))
+            lst = handleLayer(lists, operators, docIds).to_lst()
+            out_file.write(' '.join(lst) + "\n")
 
     return 
 
@@ -123,7 +124,7 @@ def handleLayer(lists, operators, docIds):
             continue
         optimisedOperators.append(operators[i])
             
-    print(len(lists))
+    # print(len(lists))
     opIdx = 0
     listIdx = 0
     while opIdx < len(optimisedOperators):
