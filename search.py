@@ -68,7 +68,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                             continue
                             
                         else:
-                            term = query[queryIdx + 1]
+                            term = query[queryIdx]
                             # handle nesting-related artifacts
                             if term[-1] == ')':
                                 term = term[:-1]
@@ -76,7 +76,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                             if term[0] == '(':
                                 term = term[1:]
                             
-                            singleWordPosting = single_word_query(query[queryIdx], dictionary, postings_file)
+                            singleWordPosting = single_word_query(term, dictionary, postings_file)
                             innerLists.append(singleWordPosting)
                             queryIdx += 1
                             continue
@@ -85,7 +85,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     innerOperators.append(query[queryIdx])
                     if not innerLayer:
                         lists.append(handleLayer(innerLists, innerOperators, docIds))
-                    
+                    queryIdx += 1
                     continue
                 
                 
@@ -152,6 +152,8 @@ def handleLayer(lists, operators, docIds):
         if optimisedOperators[opIdx] == "AND":
             candidateOperations.append([min(lists[listIdx].size, lists[listIdx + 1].size), listIdx])
         
+        print(opIdx)
+        print(optimisedOperators)
         opIdx += 1
         listIdx += 1
         
@@ -235,7 +237,9 @@ def single_word_query(word, dictionary, postings_file):
 
 def eval_NOT(word_lst, docid_lst):
     """"
-    Given a posting list this function negates and return the new posting list. 
+    Given a linked list with document posting list consisting of all the docIDs, where 
+    the found is found, it returns a document posting list consisting of all the docIDs, 
+    of which the word is not part of. 
 
     Params: 
         word_lst: a linked list with document postings 
@@ -265,6 +269,17 @@ def eval_NOT(word_lst, docid_lst):
     return linkedlist.LinkedList(lst)
 
 def eval_OR(w1_lst, w2_lst):
+    """"
+    Given two linked list with posting list of two words, it returns the a linkedlist 
+    which consists of the doc IDs in which either of the word can be found. 
+
+    Params: 
+        w1_lst: a document posting list consisting of docIDs, where word1 is found 
+        w2_lst: a document posting list comsisting of docIDs, where word2 is found 
+
+    Returns: a linked list of document posting list consisting of docIDs, where either 
+            word1, or word2 is found. 
+    """
 
     p1 = w1_lst.head 
     p2 = w2_lst.head 
@@ -297,6 +312,17 @@ def eval_OR(w1_lst, w2_lst):
     return linkedlist.LinkedList(output_lst)
 
 def eval_AND(w1_lst, w2_lst):
+    """"
+    Given two linked list with posting list of two words, it returns the a linkedlist 
+    of posting lists which consists of the doc IDs in which both of the word are found. 
+
+    Params: 
+        w1_lst: a document posting list consisting of docIDs, where word1 is found 
+        w2_lst: a document posting list comsisting of docIDs, where word2 is found 
+
+    Returns: a linked list of document posting list consisting of docIDs, where either 
+            word1, or word2 is found. 
+    """
 
     p1 = w1_lst.head 
     p2 = w2_lst.head 
