@@ -1,0 +1,12 @@
+chaps
+hello
+england
+the 
+NOT england
+NOT hello
+NOT the 
+the OR hello 
+england OR chaps 
+england AND chaps 
+hello AND the 
+hello AND chaps

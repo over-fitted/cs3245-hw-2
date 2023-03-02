@@ -9,16 +9,22 @@ class Node:
 
 class LinkedList:
     def __init__(self, inputList):
-        nodeList = [Node(id) for id in inputList]
-        self.head = nodeList[0]
 
-        for i in range(len(nodeList) - 1):
-            nodeList[i].nextNode = nodeList[i+1]
-            if i % math.floor(math.sqrt(len(nodeList))):
-                skipIdx = i + math.floor(math.sqrt(len(nodeList)))
-                if skipIdx >= len(nodeList):
-                    continue
-                nodeList[i].skipPointer = nodeList[i + math.floor(math.sqrt(len(nodeList)))]
+        if len(inputList) == 0:
+            self.head = None 
+            self.size = 0
+        else:
+            nodeList = [Node(id) for id in inputList]
+            self.head = nodeList[0]
+            self.size = len(inputList)
+
+            for i in range(len(nodeList) - 1):
+                nodeList[i].nextNode = nodeList[i+1]
+                if i % math.floor(math.sqrt(len(nodeList))):
+                    skipIdx = i + math.floor(math.sqrt(len(nodeList)))
+                    if skipIdx >= len(nodeList):
+                        continue
+                    nodeList[i].skipPointer = nodeList[i + math.floor(math.sqrt(len(nodeList)))]
 
     def __str__(self):
         ret = "["
@@ -29,6 +35,17 @@ class LinkedList:
         ret += "]"
         return ret
     
+    def to_lst(self):
+
+        lst = [] 
+        it = self.head
+
+        while it != None:
+            lst.append(it.id)
+            it = it.nextNode
+        
+        return lst 
+
     def compare(self, otherLinkedList):
         tempSelf = self.head
         tempOther = otherLinkedList.head
@@ -76,6 +93,9 @@ if __name__ == "__main__":
         for start, sz in nums:
             f.seek(start)
             reinit.append(LinkedListSerialiser.deserialise(f.read(sz)))
+
+    print(LinkedList([]))
+    print()
 
     for xs in reinit:
         print(xs)
