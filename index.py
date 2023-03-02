@@ -212,13 +212,13 @@ def writeOut(postingsMap, outFile):
         for key in sorted(postingsMap.keys()):
             outFile.write(str(key))
             for docId in postingsMap[key]:
-                outFile.write(" " + docId)
+                outFile.write(" " + str(docId))
             outFile.write("\n")
             
 def writeSinglePosting(term, posting, outFp):
     outputStr = str(term)
     for docId in posting:
-        outputStr += " " + docId
+        outputStr += " " + str(docId)
     outputStr += "\n"
     outFp.write(outputStr)
 
@@ -342,7 +342,7 @@ def readPostingStrings(fp, sizePerFilePerBlock):
     for postingString in filePostingStrings:
         termId, *posting = postingString.split(" ")
         termId = int(termId)
-        postingsMap[termId] = posting
+        postingsMap[termId] = [int(i) for i in posting]
 
     return postingsMap
 
