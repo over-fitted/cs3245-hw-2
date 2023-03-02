@@ -136,6 +136,36 @@ def handleLayer(lists, operators, docIds):
         
         opIdx += 1
         listIdx += 1
+        
+    
+    # index candidate AND operations
+    opIdx = 0
+    listIdx = 0
+    # <estimatedLength, id>
+    candidateOperations = []
+    while opIdx < len(optimisedOperators):
+        if optimisedOperators[opIdx] == "AND":
+            candidateOperations.append([min(len(lists[listIdx]), len(lists[listIdx + 1])), listIdx])
+        
+        opIdx += 1
+        listIdx += 1
+        
+    while len(candidateOperations) > 0:
+        bestAND = candidateOperations[0]
+        eval_AND(lists[bestAND[1]], lists[bestAND[1] + 1])
+        candidateOperations.pop(0)
+        
+        # re-index candidate add operations
+        opIdx = 0
+        listIdx = 0
+        # <estimatedLength, id>
+        candidateOperations = []
+        while opIdx < len(optimisedOperators):
+            if optimisedOperators[opIdx] == "AND":
+                candidateOperations.append([min(len(lists[listIdx]), len(lists[listIdx + 1])), listIdx])
+            
+            opIdx += 1
+            listIdx += 1
     
     # opIdx = 0
     # listIdx = 0
