@@ -38,6 +38,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     with open(dict_file, "rb") as dict_file:
         # <word in string form, [start byte address, size in bytes]>
         dictionary = pickle.load(dict_file)
+        print(dictionary)
         
     # load list of sorted docIds
     with open(DOCID_FILE_PATH, "rb") as docid_file:
@@ -53,16 +54,14 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             lists = []
             
             innerLayer = False
-            exitInner = True
+            exitInner = False
             innerOperators = []
             innerLists = []
             
             # shunting yard preprocess
-            while queryIdx < len(query):
-                
-                print(innerLayer, queryIdx, operators)
-                
+            while queryIdx < len(query):                
                 if innerLayer:
+                    print("innerLayer", queryIdx, innerOperators, "innerLists:", [str(xs) for xs in innerLists])
                     # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                     if (queryIdx - offset) % 2 == 0:
                         if query[queryIdx] == "NOT":
@@ -76,10 +75,11 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                             # handle nesting-related artifacts
                             if term[-1] == ')':
                                 term = term[:-1]
-                                innerLayer = False
+                                exitInner = True
                             if term[0] == '(':
                                 term = term[1:]
                             
+                            print("term seen is",term)
                             singleWordPosting = single_word_query(term, dictionary, postings_file)
                             innerLists.append(singleWordPosting)
                             queryIdx += 1
@@ -98,6 +98,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     queryIdx += 1
                     continue
                 
+                print("outer", queryIdx, operators, "lists:", len(lists))
                 
                 # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                 if (queryIdx - offset) % 2 == 0:
@@ -130,7 +131,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
 def handleLayer(lists, operators, docIds):
     optimisedOperators = []
-    print("Lists and operators are ", lists, operators)
+    print("Lists and operators are ", [str(xs) for xs in lists], operators)
     for i in range(len(operators)):
         # NOT NOT is trivially the original list
         if len(optimisedOperators) > 0 and operators[i] == "NOT" and optimisedOperators[-1] == "NOT":
@@ -240,17 +241,15 @@ def single_word_query(word, dictionary, postings_file):
     Returns: a linkedlist object consisting of all the documents posting of the words 
     in the dictonary. 
     """
-    
-    output = linkedlist.LinkedList([])
-
-    start, end  = dictionary.get(word, [-1, -1]) # -1 means that the word doesn't exist 
+    start, sz  = dictionary.get(word, [-1, -1]) # -1 means that the word doesn't exist 
+    print("querying single word", word, start, sz)
             
     if start != -1:
         with open(postings_file, "rb") as post_file:
             post_file.seek(start)
-            output = pickle.load(post_file)
+            return pickle.loads(post_file.read(sz))
 
-    return output
+    return linkedlist.LinkedList([])
 
 def eval_NOT(word_lst, docid_lst):
     """"
