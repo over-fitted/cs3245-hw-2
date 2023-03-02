@@ -133,6 +133,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
 # perform shunting yard computations
 def handleLayer(lists, operators, docIds):
+    # perform size-independent optimisations
     optimisedOperators = []
     for i in range(len(operators)):
         # NOT NOT is trivially the original list
@@ -140,7 +141,16 @@ def handleLayer(lists, operators, docIds):
             optimisedOperators.pop()
             continue
         optimisedOperators.append(operators[i])
+
+    # Identify AND NOT operations for optimisation
+    opIdx = 0
+    while opIdx < len(optimisedOperators) - 1:
+        if optimisedOperators[opIdx] == "AND" and optimisedOperators[opIdx + 1] == "NOT":
+            optimisedOperators[opIdx] = "ANDNOT"
+            optimisedOperators.pop(opIdx + 1)
+        opIdx += 1
             
+    # handle each operation in order of priority, starting with NOT
     opIdx = 0
     listIdx = 0
     while opIdx < len(optimisedOperators):
@@ -151,6 +161,39 @@ def handleLayer(lists, operators, docIds):
         # print("skip")
         opIdx += 1
         listIdx += 1
+
+    # Handle ANDNOT-optimised operations
+    # index candidate ANDNOT operations
+    opIdx = 0
+    listIdx = 0
+    # <estimatedLength, id>
+    candidateOperations = []
+    while opIdx < len(optimisedOperators):
+        if optimisedOperators[opIdx] == "ANDNOT":
+            candidateOperations.append([min(lists[listIdx].getSize(), len(docIds) - lists[listIdx + 1].getSize()), listIdx])
+        
+        opIdx += 1
+        listIdx += 1
+        
+    while len(candidateOperations) > 0:
+        bestANDNOT = sorted(candidateOperations)[0]
+        lists[bestANDNOT[1]] = eval_ANDNOT(lists[bestANDNOT[1]], lists[bestANDNOT[1] + 1])
+        lists.pop(bestANDNOT[1] + 1)
+        
+        # VERIFIED CORRECT
+        optimisedOperators.pop(bestANDNOT[1])
+        
+        # re-index candidate add operations
+        opIdx = 0
+        listIdx = 0
+        # <estimatedLength, id>
+        candidateOperations = []
+        while opIdx < len(optimisedOperators):
+            if optimisedOperators[opIdx] == "ANDNOT":
+                candidateOperations.append([min(lists[listIdx].getSize(), len(docIds) - lists[listIdx + 1].getSize()), listIdx])
+            
+            opIdx += 1
+            listIdx += 1
         
     # Handle AND operations
     # index candidate AND operations
