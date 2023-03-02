@@ -54,6 +54,34 @@ def build_index(in_dir, out_dict, out_postings):
 
     inFiles = sorted(os.listdir(in_dir))
 
+    # pre-process the documents 
+    tmp_dir = "processed"
+    stemmer = nltk.stem.PorterStemmer()
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
+    
+    for file_name in inFiles:
+
+        with open(os.path.join(in_dir, file_name), 'r') as f:
+            contents = f.read()
+
+        contents = contents.lower() # case folding
+        sentences = nltk.tokenize.sent_tokenize(contents)
+        
+        words = [] 
+        for sentence in sentences:
+            words.extend(nltk.tokenize.word_tokenize(sentence)) 
+
+        stemmed_words = [stemmer.stem(word) for word in words]
+        processed_words = ' '.join(stemmed_words)
+
+         # Write processed contents to tmp directory
+        with open(os.path.join(tmp_dir, file_name), 'w') as f:
+            f.write(processed_words)
+    
+    in_dir = tmp_dir # change the input directory to the processed documents folder 
+    inFiles = sorted(os.listdir(in_dir))
+
     # first pass: Create starting blocks indexing 500 documents each
     currentBlockDocs = 0
     currentTempId = 1

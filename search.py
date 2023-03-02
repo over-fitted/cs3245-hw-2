@@ -60,7 +60,6 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 print(query, output[-1].to_lst())
             
             elif len(query) == 2:
-
                 word = query[1]
                 output.append(eval_NOT(word, dictionary, postings_file, "docIds.txt"))
                 print(query, output[-1].to_lst())
@@ -70,10 +69,10 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 output.append(eval_OR(w1, w2, dictionary, postings_file))
                 print(query, output[-1].to_lst())
             
-            else:
+            else: # why is this not executing 
                 w1, w2 = query[0], query[-1]
                 output.append(eval_AND(w1, w2, dictionary, postings_file))
-        
+                print(query, output[-1].to_lst())
 
     print() 
     
