@@ -58,6 +58,9 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             
             # shunting yard preprocess
             while queryIdx < len(query):
+                
+                print(innerLayer, queryIdx, operators)
+
                 if innerLayer:
                     # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                     if (queryIdx - offset) % 2 == 0:
@@ -120,6 +123,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
 def handleLayer(lists, operators, docIds):
     optimisedOperators = []
+    print("Lists and operators are ", lists, operators)
     for i in range(len(operators)):
         # NOT NOT is trivially the original list
         if len(optimisedOperators) > 0 and operators[i] == "NOT" and optimisedOperators[-1] == "NOT":
@@ -134,6 +138,7 @@ def handleLayer(lists, operators, docIds):
         if optimisedOperators[opIdx] == "NOT":
             print(len(lists), listIdx)
             print(len(optimisedOperators))
+            print(lists)
             lists[listIdx] = eval_NOT(lists[listIdx], docIds)
             optimisedOperators.pop(opIdx)
             # listIdx += 1
