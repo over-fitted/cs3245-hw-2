@@ -65,13 +65,13 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 print(query, output[-1].to_lst())
             
             elif len(query) == 3 and query[1] == "OR":
-                w1, w2 = query[0], query[-1]
-                output.append(eval_OR(w1, w2, dictionary, postings_file))
+                w1, w2 = single_word_query(w1), single_word_query(w2)
+                output.append(eval_OR(w1, w2))
                 print(query, output[-1].to_lst())
             
             else: # why is this not executing 
-                w1, w2 = query[0], query[-1]
-                output.append(eval_AND(w1, w2, dictionary, postings_file))
+                w1, w2 = single_word_query(w1), single_word_query(w2)
+                output.append(eval_AND(w1, w2))
                 print(query, output[-1].to_lst())
 
     print() 
@@ -152,10 +152,7 @@ def eval_NOT(word, dictionary, postings_file, docid_file):
 
     return linkedlist.LinkedList(lst)
 
-def eval_OR(w1, w2, dictionary, postings_file):
-    
-    w1_lst = single_word_query(w1, dictionary, postings_file)
-    w2_lst = single_word_query(w2, dictionary, postings_file)
+def eval_OR(w1_lst, w2_lst):
 
     p1 = w1_lst.head 
     p2 = w2_lst.head 
@@ -187,10 +184,7 @@ def eval_OR(w1, w2, dictionary, postings_file):
     
     return linkedlist.LinkedList(output_lst)
 
-def eval_AND(w1, w2, dictionary, postings_file):
-    
-    w1_lst = single_word_query(w1, dictionary, postings_file)
-    w2_lst = single_word_query(w2, dictionary, postings_file)
+def eval_AND(w1_lst, w2_lst):
 
     p1 = w1_lst.head 
     p2 = w2_lst.head 
