@@ -137,7 +137,7 @@ def handleLayer(lists, operators, docIds):
         opIdx += 1
         listIdx += 1
         
-    
+    # Handle AND operations
     # index candidate AND operations
     opIdx = 0
     listIdx = 0
@@ -145,7 +145,7 @@ def handleLayer(lists, operators, docIds):
     candidateOperations = []
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "AND":
-            candidateOperations.append([min(len(lists[listIdx]), len(lists[listIdx + 1])), listIdx])
+            candidateOperations.append([min(lists[listIdx].size, lists[listIdx + 1].size), listIdx])
         
         opIdx += 1
         listIdx += 1
@@ -162,7 +162,38 @@ def handleLayer(lists, operators, docIds):
         candidateOperations = []
         while opIdx < len(optimisedOperators):
             if optimisedOperators[opIdx] == "AND":
-                candidateOperations.append([min(len(lists[listIdx]), len(lists[listIdx + 1])), listIdx])
+                candidateOperations.append([min(lists[listIdx].size, lists[listIdx + 1].size), listIdx])
+            
+            opIdx += 1
+            listIdx += 1
+            
+    
+    # Handle OR operations
+    # index candidate OR operations
+    opIdx = 0
+    listIdx = 0
+    # <estimatedLength, id>
+    candidateOperations = []
+    while opIdx < len(optimisedOperators):
+        if optimisedOperators[opIdx] == "OR":
+            candidateOperations.append([lists[listIdx].size + lists[listIdx + 1].size, listIdx])
+        
+        opIdx += 1
+        listIdx += 1
+        
+    while len(candidateOperations) > 0:
+        bestOR = candidateOperations[0]
+        eval_OR(lists[bestOR[1]], lists[bestOR[1] + 1])
+        candidateOperations.pop(0)
+        
+        # re-index candidate or operations
+        opIdx = 0
+        listIdx = 0
+        # <estimatedLength, id>
+        candidateOperations = []
+        while opIdx < len(optimisedOperators):
+            if optimisedOperators[opIdx] == "OR":
+                candidateOperations.append([lists[listIdx].size + lists[listIdx + 1].size, listIdx])
             
             opIdx += 1
             listIdx += 1
@@ -180,17 +211,17 @@ def handleLayer(lists, operators, docIds):
     #     listIdx += 1
         
     
-    opIdx = 0
-    listIdx = 0
-    while opIdx < len(optimisedOperators):
-        if optimisedOperators[opIdx] == "OR":
-            lists[listIdx] = eval_OR(lists[listIdx], lists[listIdx + 1])
-            lists.pop(listIdx + 1)
-            optimisedOperators.pop(opIdx)
-            continue
+    # opIdx = 0
+    # listIdx = 0
+    # while opIdx < len(optimisedOperators):
+    #     if optimisedOperators[opIdx] == "OR":
+    #         lists[listIdx] = eval_OR(lists[listIdx], lists[listIdx + 1])
+    #         lists.pop(listIdx + 1)
+    #         optimisedOperators.pop(opIdx)
+    #         continue
         
-        opIdx += 1
-        listIdx += 1
+    #     opIdx += 1
+    #     listIdx += 1
         
     return lists[0]
 

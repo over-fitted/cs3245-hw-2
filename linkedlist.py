@@ -9,7 +9,6 @@ class Node:
 
 class LinkedList:
     def __init__(self, inputList):
-
         if len(inputList) == 0:
             self.head = None 
             self.size = 0
