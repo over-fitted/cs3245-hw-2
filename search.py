@@ -53,6 +53,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             lists = []
             
             innerLayer = False
+            exitInner = True
             innerOperators = []
             innerLists = []
             
@@ -60,7 +61,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             while queryIdx < len(query):
                 
                 print(innerLayer, queryIdx, operators)
-
+                
                 if innerLayer:
                     # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                     if (queryIdx - offset) % 2 == 0:
@@ -82,12 +83,18 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                             singleWordPosting = single_word_query(term, dictionary, postings_file)
                             innerLists.append(singleWordPosting)
                             queryIdx += 1
+                            
+                            # end bracket seen, handle inner layer
+                            if exitInner:
+                                print("handling inners")
+                                lists.append(handleLayer(innerLists, innerOperators, docIds))
+                                innerLayer = False
+                                exitInner = False
+                                
                             continue
                         
                     # Operator seen at this index
                     innerOperators.append(query[queryIdx])
-                    if not innerLayer:
-                        lists.append(handleLayer(innerLists, innerOperators, docIds))
                     queryIdx += 1
                     continue
                 
@@ -131,7 +138,7 @@ def handleLayer(lists, operators, docIds):
             continue
         optimisedOperators.append(operators[i])
             
-    # print(len(lists))
+    print("listlen", len(lists))
     opIdx = 0
     listIdx = 0
     while opIdx < len(optimisedOperators):
@@ -155,7 +162,10 @@ def handleLayer(lists, operators, docIds):
     candidateOperations = []
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "AND":
-            candidateOperations.append([min(lists[listIdx].size, lists[listIdx + 1].size), listIdx])
+            print("At listIdx", listIdx, "and op found between", lists[listIdx], lists[listIdx + 1])
+            print(lists[listIdx].getSize())
+            print(lists[listIdx+1].getSize())
+            candidateOperations.append([min(lists[listIdx].getSize(), lists[listIdx + 1].getSize()), listIdx])
         
         print(opIdx)
         print(optimisedOperators)
@@ -176,7 +186,7 @@ def handleLayer(lists, operators, docIds):
         candidateOperations = []
         while opIdx < len(optimisedOperators):
             if optimisedOperators[opIdx] == "AND":
-                candidateOperations.append([min(lists[listIdx].size, lists[listIdx + 1].size), listIdx])
+                candidateOperations.append([min(lists[listIdx].getSize(), lists[listIdx + 1].getSize()), listIdx])
             
             opIdx += 1
             listIdx += 1
@@ -199,6 +209,7 @@ def handleLayer(lists, operators, docIds):
         bestOR = candidateOperations[0]
         lists[bestOR[1]] = eval_OR(lists[bestOR[1]], lists[bestOR[1] + 1])
         lists.pop(bestOR[1] + 1)
+        
         optimisedOperators.pop(bestOR[1])
         
         # re-index candidate or operations

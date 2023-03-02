@@ -12,18 +12,29 @@ class LinkedList:
         if len(inputList) == 0:
             self.head = None 
             self.size = 0
-        else:
-            nodeList = [Node(id) for id in inputList]
-            self.head = nodeList[0]
-            self.size = len(inputList)
+            return
+        
+        nodeList = [Node(id) for id in inputList]
+        self.head = nodeList[0]
+        self.size = len(inputList)
 
-            for i in range(len(nodeList) - 1):
-                nodeList[i].nextNode = nodeList[i+1]
-                if i % math.floor(math.sqrt(len(nodeList))):
-                    skipIdx = i + math.floor(math.sqrt(len(nodeList)))
-                    if skipIdx >= len(nodeList):
-                        continue
-                    nodeList[i].skipPointer = nodeList[i + math.floor(math.sqrt(len(nodeList)))]
+        for i in range(len(nodeList) - 1):
+            nodeList[i].nextNode = nodeList[i+1]
+            if i % math.floor(math.sqrt(len(nodeList))):
+                skipIdx = i + math.floor(math.sqrt(len(nodeList)))
+                if skipIdx >= len(nodeList):
+                    continue
+                nodeList[i].skipPointer = nodeList[i + math.floor(math.sqrt(len(nodeList)))]
+                    
+    def getSize(self):
+        if self.size is None:
+            self.size = 0
+            it = self.head
+            while it != None:
+                self.size += 1
+                it = it.nextNode
+            ret += "]"
+            return ret
 
     def __str__(self):
         ret = "["
