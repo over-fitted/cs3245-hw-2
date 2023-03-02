@@ -61,17 +61,20 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             
             elif len(query) == 2:
                 word = query[1]
-                output.append(eval_NOT(word, dictionary, postings_file, "docIds.txt"))
+                word_lst = single_word_query(word, dictionary, postings_file)
+                output.append(eval_NOT(word_lst, "docIds.txt"))
                 print(query, output[-1].to_lst())
             
             elif len(query) == 3 and query[1] == "OR":
-                w1, w2 = single_word_query(w1), single_word_query(w2)
-                output.append(eval_OR(w1, w2))
+                w1, w2 = query[0], query[-1]
+                w1_lst, w2_lst = single_word_query(w1, dictionary, postings_file), single_word_query(w2, dictionary, postings_file)
+                output.append(eval_OR(w1_lst, w2_lst))
                 print(query, output[-1].to_lst())
             
             else: # why is this not executing 
-                w1, w2 = single_word_query(w1), single_word_query(w2)
-                output.append(eval_AND(w1, w2))
+                w1, w2 = query[0], query[-1]
+                w1_lst, w2_lst = single_word_query(w1, dictionary, postings_file), single_word_query(w2, dictionary, postings_file)
+                output.append(eval_AND(w1_lst, w2_lst))
                 print(query, output[-1].to_lst())
 
     print() 
@@ -124,15 +127,12 @@ def single_word_query(word, dictionary, postings_file):
 
     return output
 
-def eval_NOT(word, dictionary, postings_file, docid_file):
+def eval_NOT(word_lst, docid_file):
 
     lst = [] 
 
     with open(docid_file, "rb") as doc_file:
         docid_lst = pickle.load(doc_file)
-    
-    word_lst = single_word_query(word, dictionary, postings_file)
-
     
     i = 0 # doc_id pointer 
     j = word_lst.head
