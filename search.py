@@ -39,13 +39,14 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     with open(dict_file, "rb") as dict_file:
         # <word in string form, [start byte address, size in bytes]>
         dictionary = pickle.load(dict_file)
-        # print(dictionary)
         
     # load list of sorted docIds
     with open(DOCID_FILE_PATH, "rb") as docid_file:
         docIds = pickle.load(docid_file)
 
+    # Process the queries and output
     with open(queries_file, "r") as query_file, open(results_file, "w+") as out_file:
+        firstLine = True
         for queryLine in query_file:
             query = queryLine.strip().split()
             offset = 0
@@ -62,7 +63,6 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             # shunting yard preprocess
             while queryIdx < len(query):                
                 if innerLayer:
-                    # print("innerLayer", queryIdx, innerOperators, "innerLists:", [str(xs) for xs in innerLists])
                     # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                     if (queryIdx - offset) % 2 == 0:
                         if query[queryIdx] == "NOT":
@@ -99,8 +99,6 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     queryIdx += 1
                     continue
                 
-                # print("outer", queryIdx, operators, "lists:", len(lists))
-                
                 # should see term or NOT at this index. Offset indicates number of NOTs seen so far to account for this
                 if (queryIdx - offset) % 2 == 0:
                     if query[queryIdx] == "NOT":
@@ -108,8 +106,6 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                         queryIdx += 1
                         offset += 1
                         continue
-                        
-                    # print("term seen", query[queryIdx])
                     
                     # nesting seen
                     if query[queryIdx][0] == '(':
@@ -118,21 +114,26 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                         innerLists = []
                         continue
                     
+                    # term seen, get posting
                     lists.append(single_word_query(query[queryIdx], dictionary, postings_file))
                     queryIdx += 1
                     continue
                 
+                # operator seen
                 operators.append(query[queryIdx])    
                 queryIdx += 1
                 
+            # pre-processing complete for non-nested layer, perform shunting yard computations and output
             lst = handleLayer(lists, operators, docIds).to_lst()
             lst = [str(i) for i in lst]
-            out_file.write(' '.join(sorted(lst, key = lambda x : int(x))) + "\n")
+            if not firstLine:
+                out_file.write('\n')
+            out_file.write(' '.join(lst))
+            firstLine = False
 
-
+# perform shunting yard computations
 def handleLayer(lists, operators, docIds):
     optimisedOperators = []
-    # print("Lists and operators are ", [str(xs) for xs in lists], operators)
     for i in range(len(operators)):
         # NOT NOT is trivially the original list
         if len(optimisedOperators) > 0 and operators[i] == "NOT" and optimisedOperators[-1] == "NOT":
@@ -140,21 +141,16 @@ def handleLayer(lists, operators, docIds):
             continue
         optimisedOperators.append(operators[i])
             
-    # print([xs.getSize() for xs in lists])
     opIdx = 0
     listIdx = 0
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "NOT":
-            # print("doing NOT to", listIdx)
-            # print(len(docIds))
             lists[listIdx] = eval_NOT(lists[listIdx], docIds)
             optimisedOperators.pop(opIdx)
             continue
         # print("skip")
         opIdx += 1
         listIdx += 1
-
-    # print([xs.getSize() for xs in lists])
         
     # Handle AND operations
     # index candidate AND operations

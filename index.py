@@ -152,13 +152,21 @@ def build_index(in_dir, out_dict, out_postings):
             # not likely necessary but just in case, guarded against a fixed bug
             if line == "\n":
                 continue
+
+            # deserialise original <termid, posting> pair
             separatedTerms = line.split()
             postingTermId = separatedTerms[0]
             posting = separatedTerms[1:]
             posting = [int(i) for i in posting]
+
+            # get actual term and assign directly to hard drive pointer
             originalTerm = reverseDictionary[int(postingTermId)]
             posting = linkedlist.LinkedList(posting)
+
+            # pointer is in the form [start index, size of pickle-serialised linkedlist in bytes]
             dictionary[originalTerm] = [startIdx, out_postingsFP.write(linkedlist.LinkedListSerialiser.serialise(posting))]
+
+            # track new start index for next linkedlist
             startIdx += dictionary[originalTerm][1]
             
     with open(out_dict, "wb") as dictFile:
@@ -193,8 +201,7 @@ def increaseRecursionLimit():
     resource.setrlimit(resource.RLIMIT_STACK, [0x100 * max_rec, resource.RLIM_INFINITY])
     sys.setrecursionlimit(max_rec)
 
-
-# writes <termId, space-separated docids> pair into a single line of postingsmap
+# writes out a full postings list as space-separated integer docIDs, with first integer being the termId
 def writeOut(postingsMap, outFile):
     with open(str(outFile), "w") as outFile:
         for key in sorted(postingsMap.keys()):
@@ -203,6 +210,7 @@ def writeOut(postingsMap, outFile):
                 outFile.write(" " + str(docId))
             outFile.write("\n")
             
+# writes <termId, space-separated docids> pair into a single line of postingsmap
 def writeSinglePosting(term, posting, outFp):
     outputStr = str(term)
     for docId in posting:
@@ -210,6 +218,7 @@ def writeSinglePosting(term, posting, outFp):
     outputStr += "\n"
     outFp.write(outputStr)
 
+# performs 2-way block-merge join
 def mergeFiles(file1, file2, outFile):
     # figure out why smaller size result in posting corruption
     sizePerFilePerBlock = 500000
@@ -278,6 +287,7 @@ def mergeFiles(file1, file2, outFile):
         outFp.write(fp2.read())
         outFp.write("\n")
 
+# same term found in block of 2 files, merge the associated postings and return
 def mergePostings(posting1, posting2):
     posting1Idx = 0
     posting2Idx = 0
@@ -286,6 +296,7 @@ def mergePostings(posting1, posting2):
     while posting1Idx < len(posting1) and posting2Idx < len(posting2):
         file1DocId = posting1[posting1Idx]
         file2DocId = posting2[posting2Idx]
+
         if file1DocId < file2DocId:
             mergedPosting.append(file1DocId)
             posting1Idx += 1
@@ -296,6 +307,7 @@ def mergePostings(posting1, posting2):
             posting2Idx += 1
             continue
 
+        # both contain the same file id. Should not happen but just in case
         mergedPosting.append(file1DocId)
         posting1Idx += 1
         posting2Idx += 1
@@ -304,6 +316,7 @@ def mergePostings(posting1, posting2):
     mergedPosting.extend(leftover)
     return mergedPosting
 
+# reads one-block of postings from file pointer
 def readPostingStrings(fp, sizePerFilePerBlock):
     fileBuffer = fp.read(sizePerFilePerBlock)
 
