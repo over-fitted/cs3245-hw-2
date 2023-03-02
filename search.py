@@ -38,9 +38,6 @@ def run_search(dict_file, postings_file, queries_file, results_file):
         
     with open("docIds.txt", "rb") as docid_file:
         docIds = pickle.load(docid_file)
-    
-    # print(dictionary)
-    # print() 
 
     with open(queries_file, "r") as query_file:
         for queryLine in query_file:
@@ -162,33 +159,8 @@ def handleLayer(lists, operators, docIds):
         opIdx += 1
         listIdx += 1
         
-        # if operators[0] == "AND":
-        #     lists[0] = eval_AND(lists[0], lists[1])
-        #     lists.pop(1)
-        #     operators.pop(0)
-        #     continue
-        
     return lists[0]
 
-# # TODO: Handle one query string
-# def handleQuery(query):
-#     words = query.split()
-#     layers = []
-#     currentLayer = []
-#     for word in words:
-#         if "(" in word:
-#             layers.append(currentLayer)
-#             currentLayer = []
-#             word = word[1:]
-#         currentLayer.append(word)
-#         if ")" in word:
-#             newLayer = currentLayer[-2]
-#             newLayer.append(processLayer(currentLayer))
-#     pass
-
-def processLayer(currentLayer):
-    # implement DP of the current layer, assume no indentation
-    pass
 
 def single_word_query(word, dictionary, postings_file):
     
