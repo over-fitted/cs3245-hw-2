@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-import re
-import nltk
 import sys
 import getopt
 import pickle
@@ -98,6 +96,8 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                     
                     if query[queryIdx][0] == '(':
                         innerLayer = True
+                        innerOperators = []
+                        innerLists = []
                         continue
                     
                     lists.append(single_word_query(query[queryIdx], dictionary, postings_file))
@@ -119,6 +119,7 @@ def handleLayer(lists, operators):
         print(len(lists))
         if operators[0] == 'NOT':
             lists[0] = eval_NOT(lists[0])
+            list.pop(operators[0])
             continue
         
         if operators[0] == "OR":
