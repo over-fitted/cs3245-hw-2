@@ -7,10 +7,9 @@ import linkedlist
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
 
+# debugs postings
 def printPostings(postings_file, dictionary):
     with open(postings_file, "rb") as postingsFp:
-        # print(sorted(dictionary.keys()))
-        # print(dictionary["1,130,000"])
         for word in sorted(dictionary.keys()):
             print("printing", word)
             print(dictionary[word])
@@ -23,9 +22,6 @@ def printPostings(postings_file, dictionary):
             posting = linkedlist.LinkedListSerialiser.deserialise(postingInBytes)
 
             print(word, posting)
-            # print(word, dictionary[word])
-        # print("dict size", len(dictionary.keys()))
-        # print("postings size", len(postingsFp.readlines()))
 
 def run_search(dict_file, postings_file, queries_file, results_file):
     """
@@ -77,12 +73,13 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                                 innerLayer = False
                             if term[0] == '(':
                                 term = term[1:]
-                            lists.append(single_word_query(query[queryIdx], dictionary, postings_file))
+                            innerLists.append(single_word_query(query[queryIdx], dictionary, postings_file))
                             queryIdx += 1
+                            continue
                         
                     innerOperators.append(query[queryIdx])
                     if not innerLayer:
-                        lists.append(handleLayer(innerLists, innerOperators))
+                        lists.append(handleLayer(innerLists, innerOperators, docIds))
                     
                     continue
                 
@@ -93,6 +90,8 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                         queryIdx += 1
                         offset += 1
                         continue
+                        
+                    print("term seen", query[queryIdx])
                     
                     if query[queryIdx][0] == '(':
                         innerLayer = True
@@ -107,19 +106,22 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 operators.append(query[queryIdx])    
                 queryIdx += 1
                 
-            
-            print(handleLayer(lists, operators))
+            for list in lists:
+                print(list)
+            print(len(lists))
+            print(operators)
+            print(handleLayer(lists, operators, docIds))
 
     print() 
     
     return 
 
-def handleLayer(lists, operators):
-    while len(lists) > 1:
+def handleLayer(lists, operators, docIds):
+    while len(operators) >= 1:
         print(len(lists))
         if operators[0] == 'NOT':
-            lists[0] = eval_NOT(lists[0])
-            list.pop(operators[0])
+            lists[0] = eval_NOT(lists[0], docIds)
+            operators.pop(0)
             continue
         
         if operators[0] == "OR":
