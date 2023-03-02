@@ -160,6 +160,7 @@ def handleLayer(lists, operators, docIds):
     listIdx = 0
     # <estimatedLength, id>
     candidateOperations = []
+    print(lists)
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "AND":
             print("At listIdx", listIdx, "and op found between", lists[listIdx], lists[listIdx + 1])
@@ -200,7 +201,7 @@ def handleLayer(lists, operators, docIds):
     candidateOperations = []
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "OR":
-            candidateOperations.append([lists[listIdx].size + lists[listIdx + 1].size, listIdx])
+            candidateOperations.append([lists[listIdx].getSize() + lists[listIdx + 1].getSize(), listIdx])
         
         opIdx += 1
         listIdx += 1

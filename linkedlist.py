@@ -27,15 +27,14 @@ class LinkedList:
                 nodeList[i].skipPointer = nodeList[i + math.floor(math.sqrt(len(nodeList)))]
                     
     def getSize(self):
-        if self.size is None:
+        if not hasattr(self, 'size') or self.size is None:
             self.size = 0
             it = self.head
             while it != None:
                 self.size += 1
                 it = it.nextNode
-            ret += "]"
-            return ret
-
+        return self.size
+    
     def __str__(self):
         ret = "["
         it = self.head
