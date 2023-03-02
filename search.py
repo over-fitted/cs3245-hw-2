@@ -152,8 +152,10 @@ def handleLayer(lists, operators, docIds):
         
     while len(candidateOperations) > 0:
         bestAND = candidateOperations[0]
-        eval_AND(lists[bestAND[1]], lists[bestAND[1] + 1])
-        candidateOperations.pop(0)
+        lists[bestAND[1]] = eval_AND(lists[bestAND[1]], lists[bestAND[1] + 1])
+        lists.pop(bestAND[1] + 1)
+        
+        optimisedOperators.pop(bestAND[1])
         
         # re-index candidate add operations
         opIdx = 0
@@ -183,8 +185,9 @@ def handleLayer(lists, operators, docIds):
         
     while len(candidateOperations) > 0:
         bestOR = candidateOperations[0]
-        eval_OR(lists[bestOR[1]], lists[bestOR[1] + 1])
-        candidateOperations.pop(0)
+        lists[bestOR[1]] = eval_OR(lists[bestOR[1]], lists[bestOR[1] + 1])
+        lists.pop(bestOR[1] + 1)
+        optimisedOperators.pop(bestOR[1])
         
         # re-index candidate or operations
         opIdx = 0
