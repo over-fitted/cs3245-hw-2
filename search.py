@@ -56,18 +56,48 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             
             operators = []
             lists = []
-    
+            
+            innerLayer = False
+            
+            innerOperators = []
+            innerLists = []
             
             # shunting yard preprocess
             while queryIdx < len(query):
+                if innerLayer:
+                    if (queryIdx - offset) % 2 == 0:
+                        if query[queryIdx] == "NOT":
+                            innerOperators.append(query[queryIdx])
+                            queryIdx += 1
+                            offset += 1
+                            continue
+                            
+                        else:
+                            term = query[queryIdx + 1]
+                            if term[-1] == ')':
+                                term = term[:-1]
+                                innerLayer = False
+                            if term[0] == '(':
+                                term = term[1:]
+                            lists.append(single_word_query(query[queryIdx], dictionary, postings_file))
+                            queryIdx += 1
+                        
+                    innerOperators.append(query[queryIdx])
+                    if not innerLayer:
+                        lists.append(handleLayer(innerLists, innerOperators))
+                    
+                    continue
+                
+                
                 if (queryIdx - offset) % 2 == 0:
                     if query[queryIdx] == "NOT":
-                        postingOfWord = single_word_query(query[queryIdx + 1], dictionary, postings_file)
-                        lists.append(eval_NOT(postingOfWord, docIds))
-                        
-                        # skip next index
+                        operators.append(query[queryIdx])    
+                        queryIdx += 1
                         offset += 1
-                        queryIdx += 2
+                        continue
+                    
+                    if query[queryIdx][0] == '(':
+                        innerLayer = True
                         continue
                     
                     lists.append(single_word_query(query[queryIdx], dictionary, postings_file))
@@ -78,43 +108,50 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 queryIdx += 1
                 
             
-            while len(lists) > 1:
-                print(len(lists))
-                if operators[0] == "OR":
-                    lists[0] = eval_OR(lists[0], lists[1])
-                    lists.pop(1)
-                    operators.pop(0)
-                    continue
-                
-                if operators[0] == "AND":
-                    lists[0] = eval_AND(lists[0], lists[1])
-                    lists.pop(1)
-                    operators.pop(0)
-                    continue
-                
-                print("OPERATOR BROKEN")
-                
-            print(lists[0])
+            print(handleLayer(lists, operators))
 
     print() 
     
     return 
 
-# TODO: Handle one query string
-def handleQuery(query):
-    words = query.split()
-    layers = []
-    currentLayer = []
-    for word in words:
-        if "(" in word:
-            layers.append(currentLayer)
-            currentLayer = []
-            word = word[1:]
-        currentLayer.append(word)
-        if ")" in word:
-            newLayer = currentLayer[-2]
-            newLayer.append(processLayer(currentLayer))
-    pass
+def handleLayer(lists, operators):
+    while len(lists) > 1:
+        print(len(lists))
+        if operators[0] == 'NOT':
+            lists[0] = eval_NOT(lists[0])
+            continue
+        
+        if operators[0] == "OR":
+            lists[0] = eval_OR(lists[0], lists[1])
+            lists.pop(1)
+            operators.pop(0)
+            continue
+        
+        if operators[0] == "AND":
+            lists[0] = eval_AND(lists[0], lists[1])
+            lists.pop(1)
+            operators.pop(0)
+            continue
+        
+        print("OPERATOR BROKEN")
+        
+    return lists[0]
+
+# # TODO: Handle one query string
+# def handleQuery(query):
+#     words = query.split()
+#     layers = []
+#     currentLayer = []
+#     for word in words:
+#         if "(" in word:
+#             layers.append(currentLayer)
+#             currentLayer = []
+#             word = word[1:]
+#         currentLayer.append(word)
+#         if ")" in word:
+#             newLayer = currentLayer[-2]
+#             newLayer.append(processLayer(currentLayer))
+#     pass
 
 def processLayer(currentLayer):
     # implement DP of the current layer, assume no indentation
