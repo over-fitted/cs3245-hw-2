@@ -51,7 +51,7 @@ def build_index(in_dir, out_dict, out_postings):
     reverseDictionary = {}
     index = {}
 
-    inFiles = sorted(os.listdir(in_dir))
+    inFiles = sorted(os.listdir(in_dir), key = lambda x: int(x))
 
     # pre-process the documents, first by tokenising the sentences, 
     # then words, then apply porter stemming and then finally writitng the result 
@@ -82,7 +82,7 @@ def build_index(in_dir, out_dict, out_postings):
             f.write(processed_words)
     
     in_dir = TMP_DIR # change the input directory to the processed documents folder 
-    inFiles = sorted(os.listdir(in_dir))
+    inFiles = sorted(os.listdir(in_dir), key = lambda x: int(x))
 
     # first pass: Create starting blocks indexing 500 documents each
     currentBlockDocs = 0
