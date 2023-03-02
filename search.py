@@ -303,7 +303,7 @@ def eval_NOT(word_lst, docid_lst):
         docid_lst: a string with file path with all the document postings 
     
     Returns:
-        Returns a linkedlist after negating word_lst with all document postings. 
+        Returns a linkedlist after negating the posting list word_lst with all document postings. 
     """
 
     lst = [] 
@@ -377,8 +377,8 @@ def eval_AND(w1_lst, w2_lst):
         w1_lst: a document posting list consisting of docIDs, where word1 is found 
         w2_lst: a document posting list comsisting of docIDs, where word2 is found 
 
-    Returns: a linked list of document posting list consisting of docIDs, where either 
-            word1, or word2 is found. 
+    Returns: a linked list of document posting list consisting of docIDs, consisting of 
+            docIDs which are present in both the posting lists. 
     """
 
     p1 = w1_lst.head 
@@ -414,6 +414,18 @@ def eval_AND(w1_lst, w2_lst):
     return linkedlist.LinkedList(output_lst)
 
 def eval_ANDNOT(w1_lst, w2_lst):
+    """"
+    Given two linked list with posting list of two words, it returns the a linkedlist 
+    of posting lists which consists of the doc IDs which are present in the first posting list 
+    and which is not present in the second posting list. 
+
+    Params: 
+        w1_lst: a document posting list consisting of docIDs, where word1 is found 
+        w2_lst: a document posting list comsisting of docIDs, where word2 is found 
+
+    Returns: a linked list of document posting list consisting of docIDs, whhich is present 
+            in the first posting list and which is not present in the second posting list. 
+    """
 
     p1 = w1_lst.head 
     p2 = w2_lst.head 
