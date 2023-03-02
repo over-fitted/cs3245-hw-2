@@ -53,11 +53,14 @@ def build_index(in_dir, out_dict, out_postings):
 
     inFiles = sorted(os.listdir(in_dir))
 
-    # pre-process the documents 
-    tmp_dir = "processed"
+    # pre-process the documents, first by tokenising the sentences, 
+    # then words, then apply porter stemming and then finally writitng the result 
+    # of the procesed file into a dictery consisting of all the processed documents. 
+
+    TMP_DIR = "processed"
     stemmer = nltk.stem.PorterStemmer()
-    if not os.path.exists(tmp_dir):
-        os.makedirs(tmp_dir)
+    if not os.path.exists(TMP_DIR):
+        os.makedirs(TMP_DIR)
     
     for file_name in inFiles:
 
@@ -75,10 +78,10 @@ def build_index(in_dir, out_dict, out_postings):
         processed_words = ' '.join(stemmed_words)
 
          # Write processed contents to tmp directory
-        with open(os.path.join(tmp_dir, file_name), 'w') as f:
+        with open(os.path.join(TMP_DIR, file_name), 'w') as f:
             f.write(processed_words)
     
-    in_dir = tmp_dir # change the input directory to the processed documents folder 
+    in_dir = TMP_DIR # change the input directory to the processed documents folder 
     inFiles = sorted(os.listdir(in_dir))
 
     # first pass: Create starting blocks indexing 500 documents each

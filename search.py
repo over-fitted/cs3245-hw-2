@@ -32,12 +32,15 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     # This is an empty method
     # Pls implement your code in below
 
+    DOCID_FILE_PATH = "docIds.txt"
+
+
     with open(dict_file, "rb") as dict_file:
         # <word in string form, [start byte address, size in bytes]>
         dictionary = pickle.load(dict_file)
         
     # load list of sorted docIds
-    with open("docIds.txt", "rb") as docid_file:
+    with open(DOCID_FILE_PATH, "rb") as docid_file:
         docIds = pickle.load(docid_file)
 
     with open(queries_file, "r") as query_file, open(results_file, "w+") as out_file:
@@ -129,11 +132,13 @@ def handleLayer(lists, operators, docIds):
     listIdx = 0
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "NOT":
+            print(len(lists), listIdx)
+            print(len(optimisedOperators))
             lists[listIdx] = eval_NOT(lists[listIdx], docIds)
             optimisedOperators.pop(opIdx)
-            listIdx += 1
+            # listIdx += 1
             continue
-        
+        print("skip")
         opIdx += 1
         listIdx += 1
         
@@ -200,36 +205,22 @@ def handleLayer(lists, operators, docIds):
             
             opIdx += 1
             listIdx += 1
-    
-    # opIdx = 0
-    # listIdx = 0
-    # while opIdx < len(optimisedOperators):
-    #     if optimisedOperators[opIdx] == "AND":
-    #         lists[listIdx] = eval_AND(lists[listIdx], lists[listIdx + 1])
-    #         lists.pop(listIdx + 1)
-    #         optimisedOperators.pop(opIdx)
-    #         continue
-        
-    #     opIdx += 1
-    #     listIdx += 1
-        
-    
-    # opIdx = 0
-    # listIdx = 0
-    # while opIdx < len(optimisedOperators):
-    #     if optimisedOperators[opIdx] == "OR":
-    #         lists[listIdx] = eval_OR(lists[listIdx], lists[listIdx + 1])
-    #         lists.pop(listIdx + 1)
-    #         optimisedOperators.pop(opIdx)
-    #         continue
-        
-    #     opIdx += 1
-    #     listIdx += 1
         
     return lists[0]
 
 
 def single_word_query(word, dictionary, postings_file):
+    """
+
+    Given a word in string and dictoanay and a file of documents postings 
+    it returns a linked list with all the documents_posting found in the dictonary. 
+
+    Params: word: string, dictionary : a dictonray object loaded into memory, 
+            postings_file: string path to the file of postings_file 
+    
+    Returns: a linkedlist object consisting of all the documents posting of the words 
+    in the dictonary. 
+    """
     
     output = linkedlist.LinkedList([])
 
@@ -243,6 +234,16 @@ def single_word_query(word, dictionary, postings_file):
     return output
 
 def eval_NOT(word_lst, docid_lst):
+    """"
+    Given a posting list this function negates and return the new posting list. 
+
+    Params: 
+        word_lst: a linked list with document postings 
+        docid_lst: a string with file path with all the document postings 
+    
+    Returns:
+        Returns a linkedlist after negating word_lst with all document postings. 
+    """
 
     lst = [] 
     

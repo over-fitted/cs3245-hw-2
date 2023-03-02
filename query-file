@@ -8,3 +8,5 @@ NOT NOT england
 england AND chaps 
 hello AND the 
 hello AND chaps
+there AND NOT england AND NOT one 
+chaps OR hello OR england AND the OR one AND chaps AND england
