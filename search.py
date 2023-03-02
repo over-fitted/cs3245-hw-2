@@ -39,7 +39,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     with open(dict_file, "rb") as dict_file:
         # <word in string form, [start byte address, size in bytes]>
         dictionary = pickle.load(dict_file)
-        print(dictionary)
+        # print(dictionary)
         
     # load list of sorted docIds
     with open(DOCID_FILE_PATH, "rb") as docid_file:
@@ -129,10 +129,10 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             lst = [str(i) for i in lst]
             out_file.write(' '.join(sorted(lst, key = lambda x : int(x))) + "\n")
 
-    w1 = single_word_query('japan', dictionary, postings_file).to_lst()
-    w2 = single_word_query('zurich', dictionary, postings_file).to_lst()
-    w1, w2 = list(map(int, w1)), list(map(int, w2))
-    w1, w2 = linkedlist.LinkedList(sorted(w1)), linkedlist.LinkedList(sorted(w2))
+    w1 = single_word_query('japan', dictionary, postings_file)
+    w2 = single_word_query('zurich', dictionary, postings_file)
+    # w1, w2 = list(map(int, w1)), list(map(int, w2))
+    # w1, w2 = linkedlist.LinkedList(sorted(w1)), linkedlist.LinkedList(sorted(w2))
     tmp_lst = eval_AND(w1, w2).to_lst()
     print()
     print("japan", w1.to_lst())
@@ -188,7 +188,7 @@ def handleLayer(lists, operators, docIds):
         lists[bestAND[1]] = eval_AND(lists[bestAND[1]], lists[bestAND[1] + 1])
         lists.pop(bestAND[1] + 1)
         
-        # print("popping and"m )
+        # VERIFIED CORRECT
         optimisedOperators.pop(bestAND[1])
         
         # re-index candidate add operations
@@ -222,6 +222,8 @@ def handleLayer(lists, operators, docIds):
         lists[bestOR[1]] = eval_OR(lists[bestOR[1]], lists[bestOR[1] + 1])
         lists.pop(bestOR[1] + 1)
         
+        # print("popping OR", optimisedOperators[bestOR[1]])
+        # VERIFIED
         optimisedOperators.pop(bestOR[1])
         
         # re-index candidate or operations

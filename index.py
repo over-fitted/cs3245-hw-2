@@ -108,7 +108,7 @@ def build_index(in_dir, out_dict, out_postings):
                 if currTermId not in index.keys():
                     index[currTermId] = []
 
-                index[currTermId].append(inFile)
+                index[currTermId].append(int(inFile))
 
             # write out block of size 500 docs - get tens of blocks out
             currentBlockDocs += 1
@@ -156,8 +156,7 @@ def build_index(in_dir, out_dict, out_postings):
             separatedTerms = line.split()
             postingTermId = separatedTerms[0]
             posting = separatedTerms[1:]
-            # print(termId)
-            postingTermId, *posting = line.split()
+            posting = [int(i) for i in posting]
             if postingTermId in seen:
                 print("seen", postingTermId)
             seen.add(postingTermId)
