@@ -117,8 +117,8 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
 def handleLayer(lists, operators, docIds):
     optimisedOperators = []
-    i = 0
     for i in range(len(operators)):
+        # NOT NOT is trivially the original list
         if len(optimisedOperators) > 0 and operators[i] == "NOT" and optimisedOperators[-1] == "NOT":
             optimisedOperators.pop()
             continue
@@ -137,17 +137,17 @@ def handleLayer(lists, operators, docIds):
         opIdx += 1
         listIdx += 1
     
-    opIdx = 0
-    listIdx = 0
-    while opIdx < len(optimisedOperators):
-        if optimisedOperators[opIdx] == "AND":
-            lists[listIdx] = eval_AND(lists[listIdx], lists[listIdx + 1])
-            lists.pop(listIdx + 1)
-            optimisedOperators.pop(opIdx)
-            continue
+    # opIdx = 0
+    # listIdx = 0
+    # while opIdx < len(optimisedOperators):
+    #     if optimisedOperators[opIdx] == "AND":
+    #         lists[listIdx] = eval_AND(lists[listIdx], lists[listIdx + 1])
+    #         lists.pop(listIdx + 1)
+    #         optimisedOperators.pop(opIdx)
+    #         continue
         
-        opIdx += 1
-        listIdx += 1
+    #     opIdx += 1
+    #     listIdx += 1
         
     
     opIdx = 0
