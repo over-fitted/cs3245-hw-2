@@ -175,6 +175,7 @@ def build_index(in_dir, out_dict, out_postings):
     # cleanup
     shutil.rmtree("temp1")
     shutil.rmtree("temp2")
+    shutil.rmtree("processed")
 
 
 def outputDictPickle(index, dictionary, out_dict, out_postings):

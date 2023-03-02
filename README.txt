@@ -1,5 +1,5 @@
-This is the README file for A0217487U's submission
-Email(s): e0543523@u.nus.edu
+This is the README file for A0217487U and A0226619Y's submission
+Email(s): e0543523@u.nus.edu, e0638905@u.nus.edu
 
 == Python Version ==
 
@@ -46,17 +46,15 @@ We handled each other operator similarly in the order AND > OR:
 1) Create candidateOperations list
 2) Add <estimated size of intermediate result, [leftPosting, rightPosting]> to the list
 3) sort list and get the smallest estimated size candidate
-4) substitute leftPosting with the intermediate result, delete rightPosting
-5) repeat step 1 until there are no more candidateOperations
+4) substitute leftPosting with the intermediate result from operation(leftPosting, rightPosting)
+5) delete rightPosting
+6) repeat step 1 until there are no more candidateOperations
 
 To handle nested queries, we created a separate inner postings and inner operations list. We handle the nested query similar to how we handle outer query, then add the result to the postings list in the outer query.
 
-For the query search .
-
-<Andrew write about how the query is handled over here>
-
-Finally after the query has been preprocessed, we write the result into output-file-of-results by writing out all the docIds in increasing ordered 
-seperated by spaces, if the query returns no docIds an empty string is written into the output-file-of-results. 
+Finally after the query has been preprocessed, we write the result into output-file-of-results by writing out all the docIds in the result list
+seperated by spaces, by default sorted numerically based on operation implementation. 
+if the query returns no docIds a newline is written into the output-file-of-results
 
 
 == Files included with this submission ==
@@ -65,14 +63,11 @@ List the files in your submission here and provide a short 1 line
 description of each file.  Make sure your submission's files are named
 and formatted correctly.
 
-test.py: used to compare between a model index and dictionary, and our output
-inMemoryIndex.py: used to generate a model index to compare to
 index.py: Actual indexer that implements BSBI
 search.py: implements search features
 dictionary.txt: dictionary from indexing
 postings.txt: postings from indexing
-docIds.txt: pickled data structure containing all docIds for use in resolving NOT queries
-
+docIds.txt: pickled sorted list data structure containing all docIds for use in resolving NOT queries
 
 == Statement of individual work ==
 
