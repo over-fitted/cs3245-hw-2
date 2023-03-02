@@ -141,7 +141,7 @@ def handleLayer(lists, operators, docIds):
     listIdx = 0
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "AND":
-            lists[listIdx] = eval_AND(lists[listIdx], docIds)
+            lists[listIdx] = eval_AND(lists[listIdx], lists[listIdx + 1])
             optimisedOperators.pop(opIdx)
             continue
         
@@ -153,7 +153,7 @@ def handleLayer(lists, operators, docIds):
     listIdx = 0
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "OR":
-            lists[listIdx] = eval_OR(lists[listIdx], docIds)
+            lists[listIdx] = eval_OR(lists[listIdx], lists[listIdx + 1])
             optimisedOperators.pop(opIdx)
             continue
         
