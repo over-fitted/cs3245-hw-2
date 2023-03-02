@@ -17,7 +17,7 @@ def usage():
     print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
 
 def buildDocIds(in_dir, out_file):
-    inFiles = sorted(os.listdir(in_dir))
+    inFiles = sorted([int(i) for i in os.listdir(in_dir)])
     with open(out_file, "wb") as out_file:
         pickle.dump(inFiles, out_file)
 
@@ -161,8 +161,8 @@ def build_index(in_dir, out_dict, out_postings):
             if postingTermId in seen:
                 print("seen", postingTermId)
             seen.add(postingTermId)
-            posting = linkedlist.LinkedList(posting)
             originalTerm = reverseDictionary[int(postingTermId)]
+            posting = linkedlist.LinkedList(posting)
             dictionary[originalTerm] = [startIdx, out_postingsFP.write(linkedlist.LinkedListSerialiser.serialise(posting))]
             startIdx += dictionary[originalTerm][1]
             
@@ -216,6 +216,8 @@ def writeOut(postingsMap, outFile):
             outFile.write("\n")
             
 def writeSinglePosting(term, posting, outFp):
+    # if len(posting) > 10:
+    #     print("write", posting)
     outputStr = str(term)
     for docId in posting:
         outputStr += " " + str(docId)
@@ -332,8 +334,8 @@ def readPostingStrings(fp, sizePerFilePerBlock):
 
     # remove incomplete last posting
     if len(fileBuffer) == sizePerFilePerBlock:
-        print("full buffer spotted")
-        print("rollback by", len(filePostingStrings[-1]))
+        # print("full buffer spotted")
+        # print("rollback by", len(filePostingStrings[-1]))
         fp.seek(fp.tell() - len(filePostingStrings[-1]))
         filePostingStrings = filePostingStrings[:-1]
 
@@ -343,7 +345,10 @@ def readPostingStrings(fp, sizePerFilePerBlock):
         termId, *posting = postingString.split(" ")
         termId = int(termId)
         postingsMap[termId] = [int(i) for i in posting]
+        # if len(postingsMap[termId]) > 5:
+        #     print(postingsMap[termId])
 
+    
     return postingsMap
 
 

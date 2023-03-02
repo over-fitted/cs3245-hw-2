@@ -126,6 +126,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 queryIdx += 1
                 
             lst = handleLayer(lists, operators, docIds).to_lst()
+            lst = [str(i) for i in lst]
             out_file.write(' '.join(sorted(lst, key = lambda x : int(x))) + "\n")
 
     w1 = single_word_query('japan', dictionary, postings_file).to_lst()
@@ -187,6 +188,7 @@ def handleLayer(lists, operators, docIds):
         lists[bestAND[1]] = eval_AND(lists[bestAND[1]], lists[bestAND[1] + 1])
         lists.pop(bestAND[1] + 1)
         
+        # print("popping and"m )
         optimisedOperators.pop(bestAND[1])
         
         # re-index candidate add operations
@@ -408,3 +410,5 @@ if dictionary_file == None or postings_file == None or file_of_queries == None o
     sys.exit(2)
 
 run_search(dictionary_file, postings_file, file_of_queries, file_of_output)
+
+# print(eval_AND(linkedlist.LinkedList([1,2,3]), linkedlist.LinkedList([2,4,5])))

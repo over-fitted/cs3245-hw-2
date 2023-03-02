@@ -14,7 +14,7 @@ class LinkedList:
             self.size = 0
             return
         
-        nodeList = [Node(id) for id in inputList]
+        nodeList = [Node(int(id)) for id in inputList]
         self.head = nodeList[0]
         self.size = len(inputList)
 
