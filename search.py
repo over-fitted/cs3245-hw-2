@@ -126,9 +126,21 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 queryIdx += 1
                 
             lst = handleLayer(lists, operators, docIds).to_lst()
-            out_file.write(' '.join(lst) + "\n")
+            out_file.write(' '.join(sorted(lst, key = lambda x : int(x))) + "\n")
 
-    return 
+    w1 = single_word_query('japan', dictionary, postings_file).to_lst()
+    w2 = single_word_query('zurich', dictionary, postings_file).to_lst()
+    w1, w2 = list(map(int, w1)), list(map(int, w2))
+    w1, w2 = linkedlist.LinkedList(sorted(w1)), linkedlist.LinkedList(sorted(w2))
+    tmp_lst = eval_AND(w1, w2).to_lst()
+    print()
+    print("japan", w1.to_lst())
+    print() 
+    print("zurich: ", w2.to_lst()) 
+    print() 
+    print(tmp_lst)
+    print() 
+
 
 def handleLayer(lists, operators, docIds):
     optimisedOperators = []
