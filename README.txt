@@ -12,6 +12,8 @@ Give an overview of your program, describe the important algorithms/steps
 in your program, and discuss your experiments in general.  A few paragraphs 
 are usually sufficient.
 
+# Indexing
+
 Files were first preprocessed, we essentially open all the files one by one, read all the contents of the file, applying case folding to the text of each documents. 
 then tokensize each sentence, and following which each word is tokensized and finally we apply porter stemming to all the tokensized words of the documents. 
 
@@ -33,7 +35,23 @@ actual skip pointers. We then used pickle to serialise each posting, and recorde
 which we also pickled thereafter. To lookup a posting, we do file.seek(starting byte-address), then file.read(byte-size). Deserialisation is also handled 
 by custom serialiser in linkedlist.py
 
-For the query search we implement our own function implementation of evaluation functions for AND, OR and NOT query handling.
+# Query Handling
+We processed queries line by line. We processed the query by aggregating the operators into one list and the postings associated with each term in another list similar to shunting yard.
+
+We implemented our own function implementation of evaluation functions for AND, OR and NOT query handling, taking in the linkedlists required for the operation.
+We optimised "NOT" by removing adjacent NOT operators since that would result in the original posting. We then linearly substituted each NOT posting list with their 
+NOT counterpart, removing "NOT" from operator list thereafter, effectively substituting "NOT a" with the answer.
+
+We handled each other operator similarly in the order AND > OR: 
+1) Create candidateOperations list
+2) Add <estimated size of intermediate result, [leftPosting, rightPosting]> to the list
+3) sort list and get the smallest estimated size candidate
+4) substitute leftPosting with the intermediate result, delete rightPosting
+5) repeat step 1 until there are no more candidateOperations
+
+To handle nested queries, we created a separate inner postings and inner operations list. We handle the nested query similar to how we handle outer query, then add the result to the postings list in the outer query.
+
+For the query search .
 
 <Andrew write about how the query is handled over here>
 

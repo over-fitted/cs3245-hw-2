@@ -3,6 +3,7 @@ import sys
 import getopt
 import pickle
 import linkedlist
+import nltk
 
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -131,7 +132,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
 def handleLayer(lists, operators, docIds):
     optimisedOperators = []
-    print("Lists and operators are ", [str(xs) for xs in lists], operators)
+    # print("Lists and operators are ", [str(xs) for xs in lists], operators)
     for i in range(len(operators)):
         # NOT NOT is trivially the original list
         if len(optimisedOperators) > 0 and operators[i] == "NOT" and optimisedOperators[-1] == "NOT":
@@ -139,21 +140,21 @@ def handleLayer(lists, operators, docIds):
             continue
         optimisedOperators.append(operators[i])
             
-    print("listlen", len(lists))
+    print([xs.getSize() for xs in lists])
     opIdx = 0
     listIdx = 0
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "NOT":
-            print(len(lists), listIdx)
-            print(len(optimisedOperators))
-            print(lists)
+            print("doing NOT to", listIdx)
+            print(len(docIds))
             lists[listIdx] = eval_NOT(lists[listIdx], docIds)
             optimisedOperators.pop(opIdx)
-            # listIdx += 1
             continue
         print("skip")
         opIdx += 1
         listIdx += 1
+
+    print([xs.getSize() for xs in lists])
         
     # Handle AND operations
     # index candidate AND operations
@@ -164,18 +165,13 @@ def handleLayer(lists, operators, docIds):
     print(lists)
     while opIdx < len(optimisedOperators):
         if optimisedOperators[opIdx] == "AND":
-            print("At listIdx", listIdx, "and op found between", lists[listIdx], lists[listIdx + 1])
-            print(lists[listIdx].getSize())
-            print(lists[listIdx+1].getSize())
             candidateOperations.append([min(lists[listIdx].getSize(), lists[listIdx + 1].getSize()), listIdx])
         
-        print(opIdx)
-        print(optimisedOperators)
         opIdx += 1
         listIdx += 1
         
     while len(candidateOperations) > 0:
-        bestAND = candidateOperations[0]
+        bestAND = sorted(candidateOperations)[0]
         lists[bestAND[1]] = eval_AND(lists[bestAND[1]], lists[bestAND[1] + 1])
         lists.pop(bestAND[1] + 1)
         
@@ -208,7 +204,7 @@ def handleLayer(lists, operators, docIds):
         listIdx += 1
         
     while len(candidateOperations) > 0:
-        bestOR = candidateOperations[0]
+        bestOR = sorted(candidateOperations)[0]
         lists[bestOR[1]] = eval_OR(lists[bestOR[1]], lists[bestOR[1] + 1])
         lists.pop(bestOR[1] + 1)
         
@@ -241,6 +237,9 @@ def single_word_query(word, dictionary, postings_file):
     Returns: a linkedlist object consisting of all the documents posting of the words 
     in the dictonary. 
     """
+    stemmer = nltk.stem.PorterStemmer()
+    word = stemmer.stem(word.lower()) # case folding and stemming
+
     start, sz  = dictionary.get(word, [-1, -1]) # -1 means that the word doesn't exist 
     print("querying single word", word, start, sz)
             

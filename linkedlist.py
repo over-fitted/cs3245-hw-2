@@ -54,6 +54,17 @@ class LinkedList:
             it = it.nextNode
         
         return lst 
+    
+    def to_lstStr(self):
+
+        lst = [] 
+        it = self.head
+
+        while it != None:
+            lst.append(str(it.id))
+            it = it.nextNode
+        
+        return lst 
 
     def compare(self, otherLinkedList):
         tempSelf = self.head
