@@ -41,58 +41,64 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     with open(dict_file, "rb") as dict_file:
         # <word in string form, [start byte address, size in bytes]>
         dictionary = pickle.load(dict_file)
+        
+    with open("docIds.txt", "rb") as docid_file:
+        docIds = pickle.load(docid_file)
     
-    print(dictionary)
-    print() 
+    # print(dictionary)
+    # print() 
 
     with open(queries_file, "r") as query_file:
-        queries = query_file.readlines() 
-        print(queries)
-        print()
-
-        output = []
-        
-        for query in queries:
-            query = query.strip().split()
-            if len(query) == 1:
-                word = query[0]
-                output.append(single_word_query(word, dictionary, postings_file))
-                print(query, output[-1].to_lst())
+        for queryLine in query_file:
+            query = queryLine.strip().split()
+            offset = 0
+            queryIdx = 0
             
-            elif len(query) == 2:
-                word = query[1]
-                word_lst = single_word_query(word, dictionary, postings_file)
-                output.append(eval_NOT(word_lst, "docIds.txt"))
-                print(query, output[-1].to_lst())
+            operators = []
+            lists = []
+    
             
-            elif len(query) == 3 and query[1] == "OR":
-                w1, w2 = query[0], query[-1]
-                w1_lst, w2_lst = single_word_query(w1, dictionary, postings_file), single_word_query(w2, dictionary, postings_file)
-                output.append(eval_OR(w1_lst, w2_lst))
-                print(query, output[-1].to_lst())
+            # shunting yard preprocess
+            while queryIdx < len(query):
+                if (queryIdx - offset) % 2 == 0:
+                    if query[queryIdx] == "NOT":
+                        postingOfWord = single_word_query(query[queryIdx + 1], dictionary, postings_file)
+                        lists.append(eval_NOT(postingOfWord, docIds))
+                        
+                        # skip next index
+                        offset += 1
+                        queryIdx += 2
+                        continue
+                    
+                    lists.append(single_word_query(query[queryIdx], dictionary, postings_file))
+                    queryIdx += 1
+                    continue
+                
+                operators.append(query[queryIdx])    
+                queryIdx += 1
+                
             
-            else: # why is this not executing 
-                w1, w2 = query[0], query[-1]
-                w1_lst, w2_lst = single_word_query(w1, dictionary, postings_file), single_word_query(w2, dictionary, postings_file)
-                output.append(eval_AND(w1_lst, w2_lst))
-                print(query, output[-1].to_lst())
+            while len(lists) > 1:
+                print(len(lists))
+                if operators[0] == "OR":
+                    lists[0] = eval_OR(lists[0], lists[1])
+                    lists.pop(1)
+                    operators.pop(0)
+                    continue
+                
+                if operators[0] == "AND":
+                    lists[0] = eval_AND(lists[0], lists[1])
+                    lists.pop(1)
+                    operators.pop(0)
+                    continue
+                
+                print("OPERATOR BROKEN")
+                
+            print(lists[0])
 
     print() 
     
-    with open("docIds.txt", "rb") as docid_file:
-        contents = pickle.load(docid_file)
-        print(contents)
-    
     return 
-
-
-
-    # debug postings load
-    printPostings(postings_file, dictionary)
-
-    # with open(queries_file, "r") as queries:
-    #     for query in queries:
-    #         handleQuery(query)
 
 # TODO: Handle one query string
 def handleQuery(query):
@@ -127,18 +133,14 @@ def single_word_query(word, dictionary, postings_file):
 
     return output
 
-def eval_NOT(word_lst, docid_file):
+def eval_NOT(word_lst, docid_lst):
 
     lst = [] 
-
-    with open(docid_file, "rb") as doc_file:
-        docid_lst = pickle.load(doc_file)
     
     i = 0 # doc_id pointer 
     j = word_lst.head
 
-    while i != len(docid_file) and j != None:
-        
+    while i != len(docid_lst) and j != None:
         if docid_lst[i] == j.id:
             i += 1 
             j = j.nextNode 
